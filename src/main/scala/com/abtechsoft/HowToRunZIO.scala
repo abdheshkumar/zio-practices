@@ -1,8 +1,8 @@
 package com.abtechsoft
 
-import zio.ZIO
 import zio.console._
-import zio.Runtime
+import zio.internal.Platform
+import zio.{Runtime, Task, ZIO}
 object MainWithZIOApp extends zio.App {
   val program: ZIO[Console, Nothing, Unit] = putStrLn("Hello, world")
   override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
@@ -15,6 +15,12 @@ object Main {
   val program: ZIO[Console, Nothing, Unit] = putStrLn("Hello, world")
   def main(args: Array[String]): Unit = {
     Runtime.default.unsafeRun(program)
-
   }
+}
+
+object FatalErrorMain extends zio.App {
+  override val platform: Platform = Platform.default.withFatal(_ => true)
+  def simpleName[A](c: Class[A]) = c.getSimpleName
+  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] =
+    Task(simpleName(FatalErrorMain.getClass)).fold(_ => 1, _ => 0)
 }
