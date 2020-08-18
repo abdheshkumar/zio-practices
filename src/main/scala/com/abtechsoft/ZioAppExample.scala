@@ -3,25 +3,26 @@ package com.abtechsoft
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-import zio.{IO, Promise, Queue, Ref, Task, UIO, ZIO}
+import zio._
 import zio.console._
 import zio.console.Console
-import zio.duration.Duration
 
 object ZioAppExample extends zio.App {
 
   val program: ZIO[Console, Nothing, Unit] =
     putStrLn("TicTacToe game!")
 
-  def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] =
-    program.as(0)
+  def run(args: List[String]): URIO[ZEnv, ExitCode] =
+    program.as(ExitCode.success)
   //program.provideLayer(zio.ZEnv.any).flatMap(_ => ZIO.succeed(0))
 }
 
 object PrintSequence extends zio.App {
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     //putStrLn("Hello").zipRight(putStrLn("World"))
-    (putStrLn("Hello") *> putStrLn("World")) *> ZIO.succeed(0) //*> is zipRight
+    (putStrLn("Hello") *> putStrLn("World")) *> ZIO.succeed(
+      ExitCode.success
+    ) //*> is zipRight
   }
 }
 
@@ -29,11 +30,13 @@ object ErrorRecovery extends zio.App {
   val failed = putStrLn("About to fail...") *> ZIO.fail("Uh oh!") *> putStrLn(
     "This will NEVER be printed"
   )
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     //failed as 0 //Not compile because error is a String type
     //(failed as 0) orElse ZIO.succeed(1)
     //failed.fold(_ => 1, _ => 0)
-    (failed as 0).catchAllCause(cause => putStrLn(s"${cause.prettyPrint}") as 1)
+    (failed as 0)
+      .catchAllCause(cause => putStrLn(s"${cause.prettyPrint}"))
+      .as(ExitCode.success)
   }
 }
 
@@ -43,13 +46,15 @@ object Looping extends zio.App {
     if (n <= 1) effect
     else effect *> repeat(n - 1)(effect)
   }
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
-    repeat(100)(putStrLn("All work and no play makes Jack a dull boy")) as 0
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+    repeat(100)(
+      putStrLn("All work and no play makes Jack a dull boy")
+    ) as ExitCode.success
   }
 }
 
 object PromptName extends zio.App {
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     /* putStrLn("What is your name?") *> getStrLn
       .flatMap(name => putStrLn(s"Hello ${name}")) //We can use for-comprehension
       .fold(_ => 1, _ => 0)*/
@@ -58,8 +63,7 @@ object PromptName extends zio.App {
       _ <- putStrLn("What is your name?")
       name <- getStrLn
       name <- putStrLn(s"Hello ${name}")
-
-    } yield 0).orElse(ZIO.succeed(1))
+    } yield ExitCode.success).orElse(ZIO.succeed(ExitCode.failure))
   }
 }
 
@@ -69,13 +73,13 @@ object NumberGuesser extends zio.App {
     if (random.toString == guess.trim) putStrLn("You guessed correctly!")
     else putStrLn(s"You did not guess correctly. The answer was ${random}")
 
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     (for {
       random <- nextIntBounded(3)
       _ <- putStrLn("Please guess a number from 0 to 3:")
       guess <- getStrLn
       _ <- analyzeAnswer(random, guess)
-    } yield 0) orElse ZIO.succeed(1)
+    } yield ExitCode.success) orElse ZIO.succeed(ExitCode.success)
   }
 }
 
@@ -87,10 +91,11 @@ object AlarmAppImproved extends zio.App {
 
   lazy val getAlarmDuration: ZIO[Console, IOException, Duration] = {
     def parseDuration(input: String) =
-      toDoubles(input).map(
-        double => Duration((double * 1000.0).toLong, TimeUnit.MILLISECONDS)
+      toDoubles(input).map(double =>
+        Duration((double * 1000.0).toLong, TimeUnit.MILLISECONDS)
       )
-    val fallback = putStrLn("You didn't enter the number of seconds!") *> getAlarmDuration
+    val fallback =
+      putStrLn("You didn't enter the number of seconds!") *> getAlarmDuration
     for {
       _ <- putStrLn("Please enter the number of seconds to sleep:")
       input <- getStrLn
@@ -98,12 +103,12 @@ object AlarmAppImproved extends zio.App {
     } yield duration
   }
 
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     (for {
       duration <- getAlarmDuration
       fiber <- (putStrLn(".") *> ZIO.sleep(1.second)).forever.fork
       _ <- putStrLn("Time to wake up!!").delay(duration) *> fiber.interrupt
-    } yield 0) orElse ZIO.succeed(1)
+    } yield ExitCode.success) orElse ZIO.succeed(ExitCode.failure)
   }
 }
 
@@ -120,8 +125,8 @@ object ComputePi extends zio.App {
   def insideCircle(x: Double, y: Double): Boolean =
     Math.sqrt(x * x + y * y) <= 1.0
 
-  val randomPoint
-    : ZIO[Random, Nothing, (Double, Double)] = nextDouble zip nextDouble
+  val randomPoint: ZIO[Random, Nothing, (Double, Double)] =
+    nextDouble zip nextDouble
 
   def updateOnce(ref: Ref[PiState]): ZIO[Random, Nothing, Unit] = {
     for {
@@ -138,16 +143,16 @@ object ComputePi extends zio.App {
       _ <- putStrLn(s"${estimatePi(state.inside, state.total)}")
     } yield ()
 
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     (for {
       ref <- Ref.make(PiState(0L, 0L))
       worker = updateOnce(ref).forever
-      workers = List.fill(4)(worker)
-      fiber1 <- ZIO.forkAll(workers)
+      workers: Seq[ZIO[Random, Nothing, Nothing]] = List.fill(4)(worker)
+      //fiber1 <- ZIO.forkAll(workers) //Not working
       fiber2 <- (printEstimate(ref) *> ZIO.sleep(1.second)).forever.fork
       _ <- putStrLn("Enter any key to terminate...")
-      _ <- getStrLn *> (fiber1 zip fiber2).interrupt
-    } yield 0) orElse ZIO.succeed(1)
+      _ <- getStrLn *> (/*fiber1 zip */fiber2).interrupt
+    } yield ExitCode.success) orElse ZIO.succeed(ExitCode.failure)
   }
 }
 
@@ -156,14 +161,18 @@ object StmDiningPhilosophers extends zio.App {
   import zio.stm._
 
   final case class Fork(number: Int)
-  final case class Placement(left: TRef[Option[Fork]],
-                             right: TRef[Option[Fork]])
+  final case class Placement(
+      left: TRef[Option[Fork]],
+      right: TRef[Option[Fork]]
+  )
   final case class Roundtable(seats: Vector[Placement])
 
-  def takeForks(left: TRef[Option[Fork]],
-                right: TRef[Option[Fork]]): STM[Nothing, (Fork, Fork)] = {
+  def takeForks(
+      left: TRef[Option[Fork]],
+      right: TRef[Option[Fork]]
+  ): STM[Nothing, (Fork, Fork)] = {
     left.get.collect { case Some(fork) => fork } zip right.get.collect {
-      case Some(fork)                  => fork
+      case Some(fork) => fork
     }
     /*for {
       leftFork <- left.get.collect { case Some(fork)   => fork }
@@ -173,7 +182,7 @@ object StmDiningPhilosophers extends zio.App {
   }
 
   def putForks(left: TRef[Option[Fork]], right: TRef[Option[Fork]])(
-    tuple: (Fork, Fork)
+      tuple: (Fork, Fork)
   ): STM[Nothing, Unit] = {
     val (leftFork, rightFork) = tuple
     for {
@@ -195,8 +204,10 @@ object StmDiningPhilosophers extends zio.App {
     } yield Roundtable(placeMents.toVector)).commit
   }
 
-  def eat(philosopher: Int,
-          roundtable: Roundtable): ZIO[Console, Nothing, Unit] = {
+  def eat(
+      philosopher: Int,
+      roundtable: Roundtable
+  ): ZIO[Console, Nothing, Unit] = {
     val placement = roundtable.seats(philosopher)
     val left = placement.left
     val right = placement.right
@@ -208,7 +219,7 @@ object StmDiningPhilosophers extends zio.App {
     } yield ()
   }
 
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val count = 10
     def eaters(roundtable: Roundtable): Iterable[ZIO[Console, Nothing, Unit]] =
       (0 to count).map(index => eat(index, roundtable))
@@ -217,7 +228,7 @@ object StmDiningPhilosophers extends zio.App {
       fiber <- ZIO.forkAll(eaters(table))
       _ <- fiber.join
       _ <- putStrLn("All philosophers have eaten!")
-    } yield 0
+    } yield ExitCode.success
   }
 }
 
@@ -235,29 +246,31 @@ object Actors extends zio.App {
     for {
       ref <- Ref.make(initialTemperature)
       queue <- Queue.bounded[Bundle](1000)
-      _ <- queue.take
-        .flatMap {
-          case (ReadTemperature, promise) => ref.get.flatMap(promise.succeed(_))
-          case (AdjustTemperature(d), promise) =>
-            ref.updateAndGet(_ + d).flatMap(promise.succeed(_))
-        }
-        .forever
-        .fork
-    } yield
-      (c: Command) =>
-        Promise
-          .make[Nothing, Double]
-          .flatMap(p => queue.offer(c -> p) *> p.await)
+      _ <-
+        queue.take
+          .flatMap {
+            case (ReadTemperature, promise) =>
+              ref.get.flatMap(promise.succeed(_))
+            case (AdjustTemperature(d), promise) =>
+              ref.updateAndGet(_ + d).flatMap(promise.succeed(_))
+          }
+          .forever
+          .fork
+    } yield (c: Command) =>
+      Promise
+        .make[Nothing, Double]
+        .flatMap(p => queue.offer(c -> p) *> p.await)
   }
 
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val temperatures = (0 to 100).map(_.toDouble)
     (for {
       actor <- makActor(0)
-      _ <- ZIO
-        .foreachPar(temperatures)(temp => actor(AdjustTemperature(temp)))
+      _ <-
+        ZIO
+          .foreachPar(temperatures)(temp => actor(AdjustTemperature(temp)))
       temp <- actor(ReadTemperature)
       _ <- putStrLn(s"Final temperature is ${temp}")
-    } yield 0) orElse ZIO.succeed(1)
+    } yield ExitCode.success) orElse ZIO.succeed(ExitCode.failure)
   }
 }

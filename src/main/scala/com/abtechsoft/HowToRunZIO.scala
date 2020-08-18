@@ -2,16 +2,15 @@ package com.abtechsoft
 
 import zio.console._
 import zio.internal.Platform
-import zio.{Runtime, Task, ZIO}
-import zio.{BootstrapRuntime, Runtime, ZIO}
+import zio.{BootstrapRuntime, ExitCode, Runtime, Task, URIO, ZEnv, ZIO}
 import zio.console._
 
 object MainWithZIOApp extends zio.App {
 
   val program: ZIO[Console, Nothing, Unit] = putStrLn("Hello, world")
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     //program.fold(_ => 1, _ => 0)
-    program.as(0)
+    program.as(ExitCode.success)
   }
 }
 
@@ -26,8 +25,9 @@ object Main01 {
 object FatalErrorMain extends zio.App {
   override val platform: Platform = Platform.default.withFatal(_ => true)
   def simpleName[A](c: Class[A]) = c.getSimpleName
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] =
-    Task(simpleName(FatalErrorMain.getClass)).fold(_ => 1, _ => 0)
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] =
+    Task(simpleName(FatalErrorMain.getClass))
+      .fold(_ => ExitCode.failure, _ => ExitCode.success)
 }
 
 object Main02 {
