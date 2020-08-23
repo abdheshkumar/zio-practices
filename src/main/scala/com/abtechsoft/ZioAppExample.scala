@@ -62,7 +62,7 @@ object PromptName extends zio.App {
     (for {
       _ <- putStrLn("What is your name?")
       name <- getStrLn
-      name <- putStrLn(s"Hello ${name}")
+      _ <- putStrLn(s"Hello ${name}")
     } yield ExitCode.success).orElse(ZIO.succeed(ExitCode.failure))
   }
 }
@@ -147,11 +147,11 @@ object ComputePi extends zio.App {
     (for {
       ref <- Ref.make(PiState(0L, 0L))
       worker = updateOnce(ref).forever
-      workers: Seq[ZIO[Random, Nothing, Nothing]] = List.fill(4)(worker)
+      _ = List.fill(4)(worker)
       //fiber1 <- ZIO.forkAll(workers) //Not working
       fiber2 <- (printEstimate(ref) *> ZIO.sleep(1.second)).forever.fork
       _ <- putStrLn("Enter any key to terminate...")
-      _ <- getStrLn *> (/*fiber1 zip */fiber2).interrupt
+      _ <- getStrLn *> (/*fiber1 zip */ fiber2).interrupt
     } yield ExitCode.success) orElse ZIO.succeed(ExitCode.failure)
   }
 }
@@ -241,7 +241,7 @@ object Actors extends zio.App {
   type TemperatureActor = Command => Task[Double]
   def makActor(initialTemperature: Double): UIO[TemperatureActor] = {
     type Bundle = (Command, Promise[Nothing, Double])
-    val r: UIO[Queue[(Command, Promise[Nothing, Double])]] =
+    val _: UIO[Queue[(Command, Promise[Nothing, Double])]] =
       Queue.bounded[Bundle](1000)
     for {
       ref <- Ref.make(initialTemperature)

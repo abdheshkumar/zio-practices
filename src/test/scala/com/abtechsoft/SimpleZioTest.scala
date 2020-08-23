@@ -62,5 +62,5 @@ object SimpleZioTest extends DefaultRunnableSpec {
   )
 
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("All tests")(/*suite1, suite2, suite3*/consoleSuite)
+    suite("All tests")(suite1, suite2, suite3,consoleSuite)
 }
