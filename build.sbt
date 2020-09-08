@@ -1,4 +1,4 @@
-import Dependencies.Libraries._
+import Dependencies._
 lazy val root = project
   .in(file("."))
   .settings(
@@ -9,27 +9,14 @@ lazy val root = project
       //"-Xfatal-warnings",
       "-Ymacro-annotations"
     ),
-    libraryDependencies ++= Seq(
-      zio,
-      zioStreams,
-      zioMacros,
-      zioInteropCats,
-      zioLogging,
-      http4sServer,
-      http4sDsl,
-      http4sClient,
-      http4sCirce,
-      circeCore,
-      circeGeneric,
-      circeParser,
-      quillJdbc,
-      doobieCore,
-      doobieQuill,
-      doobieH2,
-      pureConfig,
-      h2,
-      logback,
-      zioTestSbt
-    ),
+    libraryDependencies ++=
+      ZIO.all ++
+        Http4s.all ++
+        Circe.all ++
+        Doobie.all ++
+        Config.all ++
+        Logback.all ++
+        TestContainer.all ++
+        FlyWay.all,
     testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )

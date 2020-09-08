@@ -9,7 +9,7 @@ import zio.clock.Clock
 
 object ZLayerAppSpec extends DefaultRunnableSpec {
 
-  def namesTest =
+  def namesTest: ZSpec[Names, Nothing] =
     testM("names test") {
       for {
         name <- Names.randomName
@@ -18,7 +18,7 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
       }
     }
 
-  def justTeamsTest =
+  def justTeamsTest: ZSpec[Teams, Nothing] =
     testM("small team test") {
       for {
         team <- Teams.pickTeam(1)
@@ -27,7 +27,7 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
       }
     }
 
-  def inMyTeam =
+  def inMyTeam: ZSpec[Teams with Names, Nothing] =
     testM("combines names and teams") {
       for {
         name <- Names.randomName
