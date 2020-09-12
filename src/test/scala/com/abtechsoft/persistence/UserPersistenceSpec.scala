@@ -10,7 +10,7 @@ import zio.{Cause, ZLayer}
 object UserPersistenceSpec extends DefaultRunnableSpec {
 
   def spec =
-    suite("Persistence integration test")(testM("Persistense Live") {
+    suite("Persistence integration test")(testM("Persistence Live") {
       for {
         notFound <- User.find(100)
         created <- User.create(User(14, "usr"))
