@@ -2,16 +2,15 @@ package com.abtechsoft
 import com.abtechsoft.TestContainer.Postgres
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import org.flywaydb.core.Flyway
-import persistence.MainApp.transactor
-import persistence.User
-import persistence.User.UserService
+import _root_.persistence.MainApp.transactor
+import _root_.persistence.User
+import _root_.persistence.User.UserService
 import zio.{ZIO, _}
 import zio.blocking.{Blocking, effectBlocking}
 import zio.clock.nanoTime
 import zio.test.Assertion._
 import zio.test.TestAspect._
 import zio.test._
-import zio.test.environment.TestEnvironment
 
 object MyPostgresIntegrationSpec extends DefaultRunnableSpec {
 

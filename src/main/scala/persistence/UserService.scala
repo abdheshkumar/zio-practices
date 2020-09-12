@@ -25,3 +25,4 @@ object User {
   )
 }
 case class User(id: Int, username: String)
+final case class UserNotFound(id: Int) extends Exception

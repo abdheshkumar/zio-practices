@@ -46,7 +46,7 @@ object MainApp extends zio.App {
             .bindHttp(api.port.value, api.host.value)
             .withHttpApp(CORS(httpApp))
             .serve
-            .compile[AppTask, AppTask, CatsExitCode]
+            .compile//[AppTask, AppTask, CatsExitCode]
             .drain
         }
       } yield server
