@@ -1,8 +1,7 @@
 package persistence.config
 
-final case class Configuration(
+final case class AppConfig(
     httpServer: HttpServerConfig,
     httpClient: HttpClientConfig,
-    dbConfig: PostgresConfig,
-    reqResClient: ReqResConfig
+    dbConfig: DBConfig
 )

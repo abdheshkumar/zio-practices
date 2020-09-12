@@ -1,0 +1,18 @@
+DELETE http://localhost:8083/users/4
+Accept: application/json
+
+###
+GET http://localhost:8083/users/4
+Accept: application/json
+
+###
+GET http://localhost:8083/users/99
+Accept: application/json
+
+###
+POST http://localhost:8083/users
+Content-Type: application/json
+
+{"id":  4, "username":  "Test-04"}
+
+###

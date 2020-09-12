@@ -4,7 +4,7 @@ import scala.concurrent.ExecutionContext
 import cats.effect.Blocker
 import doobie.hikari.HikariTransactor
 import doobie.util.transactor.Transactor
-import persistence.config.{Config, PostgresConfig}
+import persistence.config.{Config, DBConfig}
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.logging.Logging
@@ -16,23 +16,23 @@ package object dbtransactor {
 
   object DBTransactor {
     private def makeTransactor(
-        conf: PostgresConfig,
-        connectEC: ExecutionContext,
-        transactEC: ExecutionContext
+                                conf: DBConfig,
+                                connectEC: ExecutionContext,
+                                transactEC: ExecutionContext
     ): Managed[Throwable, Transactor[Task]] =
       HikariTransactor
         .newHikariTransactor[Task](
-          conf.className.value,
+          conf.driver.value,
           conf.url.value,
-          conf.user.value,
-          conf.password.value,
+          conf.user,
+          conf.password,
           connectEC,
           Blocker.liftExecutionContext(transactEC)
         )
         .toManagedZIO
 
     val managed: ZManaged[Has[
-      PostgresConfig
+      DBConfig
     ] with Blocking, Throwable, Transactor[Task]] =
       for {
         config <- Config.dbConfig.toManaged_
@@ -42,19 +42,19 @@ package object dbtransactor {
         transactor <- makeTransactor(config, connectEC, blockingEC)
       } yield transactor
 
-    val managedWithMigration: ZManaged[Has[
-      PostgresConfig
+    /*val managedWithMigration: ZManaged[Has[
+      DBConfig
     ] with Logging with Blocking, Throwable, Transactor[Task]] =
-      Migration.migrate.toManaged_ *> managed
+      Migration.migrate.toManaged_ *> managed*/
 
     val test
-        : ZLayer[Has[PostgresConfig] with Blocking, Throwable, DBTransactor] =
+        : ZLayer[Has[DBConfig] with Blocking, Throwable, DBTransactor] =
       ZLayer.fromManaged(managed)
 
     val live: ZLayer[Has[
-      PostgresConfig
+      DBConfig
     ] with Logging with Blocking, Throwable, DBTransactor] =
-      ZLayer.fromManaged(managedWithMigration)
+      ZLayer.fromManaged(managed)
 
     val transactor: URIO[DBTransactor, Transactor[Task]] = ZIO.service
 

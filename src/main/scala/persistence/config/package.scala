@@ -11,15 +11,10 @@ import zio.{Task, _}
 
 package object config {
 
-  type Config = Has[HttpServerConfig]
-    with Has[HttpClientConfig]
-    with Has[PostgresConfig]
-    with Has[ReqResConfig]
+  type Config =
+    Has[HttpServerConfig] with Has[HttpClientConfig] with Has[DBConfig]
 
   object Config {
-
-    private val basePath = "zio.cats.backend"
-    private val source = ConfigSource.default.at(basePath)
 
     private val buildEnv: Task[String] =
       Task.effect {
@@ -41,12 +36,8 @@ package object config {
 
     val live: ZLayer[Logging, Throwable, Config] = ZLayer.fromEffectMany(
       Task
-        .effect(source.loadOrThrow[Configuration])
-        .map(c =>
-          Has(c.httpServer) ++ Has(c.httpClient) ++ Has(c.dbConfig) ++ Has(
-            c.reqResClient
-          )
-        )
+        .effect(ConfigSource.default.loadOrThrow[AppConfig])
+        .map(c => Has(c.httpServer) ++ Has(c.httpClient) ++ Has(c.dbConfig))
         .tapError(logEnv)
     )
 
@@ -54,7 +45,6 @@ package object config {
       ZIO.service
     val httpClientConfig: URIO[Has[HttpClientConfig], HttpClientConfig] =
       ZIO.service
-    val dbConfig: URIO[Has[PostgresConfig], PostgresConfig] = ZIO.service
-    val reqResConfig: URIO[Has[ReqResConfig], ReqResConfig] = ZIO.service
+    val dbConfig: URIO[Has[DBConfig], DBConfig] = ZIO.service
   }
 }

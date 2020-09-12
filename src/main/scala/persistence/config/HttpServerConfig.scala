@@ -9,6 +9,7 @@ import eu.timepit.refined.types.string.NonEmptyString
 final case class HttpServerConfig(
     host: NonEmptyString,
     port: UserPortNumber,
+    path: NonEmptyString,
     poolSize: PosInt = HttpServerConfig.defaultPoolSize,
     responseHeaderTimeout: FiniteDuration = 10.seconds,
     idleTimeout: FiniteDuration = 30.seconds

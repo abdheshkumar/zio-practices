@@ -2,9 +2,9 @@ package com.abtechsoft
 import com.abtechsoft.TestContainer.Postgres
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import org.flywaydb.core.Flyway
-import persistence.CustomerService
 import persistence.MainApp.transactor
-import persistence.data.User
+import persistence.User
+import persistence.User.UserService
 import zio.{ZIO, _}
 import zio.blocking.{Blocking, effectBlocking}
 import zio.clock.nanoTime
@@ -15,48 +15,58 @@ import zio.test.environment.TestEnvironment
 
 object MyPostgresIntegrationSpec extends DefaultRunnableSpec {
 
-  val postgresLayer: ULayer[Postgres] =
-    Blocking.live >>> TestContainer.postgres()
+  val postgresLayer = Blocking.live >>> TestContainer.postgres()
+  val userService: RLayer[Any, User.UserService] =
+    Blocking.live >>> (transactor >>> User.live)
+  val testEnv =
+    zio.test.environment.testEnvironment ++ postgresLayer ++ userService
 
-  val userService: RLayer[Any, CustomerService] =
-    Blocking.live >>> (transactor >>> CustomerService.live)
-
-  val app: ZLayer[Any, Throwable, Postgres with CustomerService] =
-    postgresLayer ++ userService
-
-  val testEnv: ZLayer[
-    Any,
-    Throwable,
-    _root_.zio.test.environment.TestEnvironment with Postgres with CustomerService
-  ] =
-    zio.test.environment.testEnvironment ++ app
-
-  def testA: ZSpec[CustomerService, Throwable] = {
+  def testA: ZSpec[UserService, Throwable] = {
     testM("Can compile") {
       (for {
-        user <- CustomerService.create(User("testUser", "testPassword"))
-        result <- CustomerService.find(user.username)
+        user <- User.create(User(1, "testUser"))
+        result <- User.find(user.id)
       } yield assert(result)(equalTo(Some(user))) &&
-        assert(result.get.username)(equalTo("testUser")))
+        assert(result.get.id)(equalTo(1)))
     }
   }
+
+  val postgresSpec: ZSpec[
+    Blocking with Postgres with _root_.zio.test.environment.TestEnvironment,
+    Object
+  ] =
+    suite("Postgres integration second") {
+      testM("Can create and fetch a customer") {
+        assertM(nanoTime)(isGreaterThanEqualTo(0L))
+      }
+    }.provideCustomLayer(testEnv).mapError(TestFailure.fail) @@ MigrationAspects
+      .migrate(
+        "customers",
+        "filesystem:src/customers/resources/db/migration"
+      )
+
   def spec =
     suite("All")(
       suite("Postgres integration")(
         testM("Can create and fetch a customer") {
-          def program: ZIO[CustomerService, Throwable, Option[User]] = {
+          def program: ZIO[UserService, Throwable, Option[User]] = {
             for {
-              user <- CustomerService.create(User("testUser", "testPassword"))
-              result <- CustomerService.find(user.username)
+              user <- User.create(User(2, "testUser"))
+              result <- User.find(user.id)
             } yield result
           }
-          val result = program.provideCustomLayer(app)
+          val result = program.provideCustomLayer(testEnv)
           assertM(result)(equalTo(Option.empty[User]))
         }
       ),
       suite("sa")(testA)
-        .provideCustomLayer(userService ++ zio.test.environment.testEnvironment)
-        .mapError(TestFailure.fail)
+        .provideCustomLayer(testEnv)
+        .mapError(TestFailure.fail) /* @@ MigrationAspects.migrate("","")*/,
+      suite("Postgres integration second") {
+        testM("Can create and fetch a customer") {
+          assertM(nanoTime)(isGreaterThanEqualTo(0L))
+        }
+      } @@ sequential
     )
 }
 
@@ -78,22 +88,25 @@ object TestContainer {
 }
 
 object MigrationAspects {
-  def migrate(): TestAspect[Nothing, Has[PostgreSQLContainer], Nothing, Any] = {
+  def migrate(
+      schema: String,
+      paths: String*
+  ): TestAspect[Nothing, Blocking with Postgres, Nothing, Any] = {
     val migration = for {
-      _ <- ZIO.service[PostgreSQLContainer]
-      //_ <- runMigration(pg.jdbcUrl, pg.username, pg.password, schema, paths: _*)
+      pg <- ZIO.service[PostgreSQLContainer]
+      _ <- runMigration(pg.jdbcUrl, pg.username, pg.password, schema, paths: _*)
     } yield ()
 
-    before(migration)
+    before(migration.orDie)
   }
 
-  /*  private def runMigration(
+  private def runMigration(
       url: String,
       username: String,
       password: String,
       schema: String,
       locations: String*
-  ) =
+  ): RIO[Blocking, Int] =
     effectBlocking {
       Flyway
         .configure()
@@ -102,5 +115,5 @@ object MigrationAspects {
         .locations(locations: _*)
         .load()
         .migrate()
-    }*/
+    }
 }
