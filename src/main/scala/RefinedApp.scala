@@ -1,4 +1,4 @@
-import eu.timepit.refined.api.Refined
+import eu.timepit.refined.api.{RefType, Refined}
 import eu.timepit.refined.string.MatchesRegex
 import pureconfig.ConfigSource
 
@@ -155,5 +155,11 @@ object RefinedApp extends App {
   // ConvertFailure(WrongType(STRING,Set(NUMBER)),Some(ConfigOrigin(String)),http.port)))
 
   println(invalidConfig)
+
+  //Manual refine
+  RefType.applyRefM[refinements.Name]("Abdhesh Kumar")
+//define runtime value
+  val name: String = "Abdhesh Kumar"
+  RefType.applyRef[refinements.Name](name)
 
 }
