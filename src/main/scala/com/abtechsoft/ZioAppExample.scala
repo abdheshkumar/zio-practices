@@ -9,20 +9,18 @@ import zio.console.Console
 
 object ZioAppExample extends zio.App {
 
-  val program: ZIO[Console, Nothing, Unit] =
+  val program: ZIO[Console, IOException, Unit] =
     putStrLn("TicTacToe game!")
 
   def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    program.as(ExitCode.success)
+    program.exitCode
   //program.provideLayer(zio.ZEnv.any).flatMap(_ => ZIO.succeed(0))
 }
 
 object PrintSequence extends zio.App {
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     //putStrLn("Hello").zipRight(putStrLn("World"))
-    (putStrLn("Hello") *> putStrLn("World")) *> ZIO.succeed(
-      ExitCode.success
-    ) //*> is zipRight
+    (putStrLn("Hello") *> putStrLn("World")).exitCode //*> is zipRight
   }
 }
 
@@ -34,9 +32,9 @@ object ErrorRecovery extends zio.App {
     //failed as 0 //Not compile because error is a String type
     //(failed as 0) orElse ZIO.succeed(1)
     //failed.fold(_ => 1, _ => 0)
-    (failed as 0)
+    (failed)
       .catchAllCause(cause => putStrLn(s"${cause.prettyPrint}"))
-      .as(ExitCode.success)
+      .exitCode
   }
 }
 
@@ -49,7 +47,7 @@ object Looping extends zio.App {
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     repeat(100)(
       putStrLn("All work and no play makes Jack a dull boy")
-    ) as ExitCode.success
+    ).exitCode
   }
 }
 
@@ -137,7 +135,7 @@ object ComputePi extends zio.App {
     } yield ()
   }
 
-  def printEstimate(ref: Ref[PiState]): ZIO[Console, Nothing, Unit] =
+  def printEstimate(ref: Ref[PiState]): ZIO[Console, IOException, Unit] =
     for {
       state <- ref.get
       _ <- putStrLn(s"${estimatePi(state.inside, state.total)}")
@@ -207,7 +205,7 @@ object StmDiningPhilosophers extends zio.App {
   def eat(
       philosopher: Int,
       roundtable: Roundtable
-  ): ZIO[Console, Nothing, Unit] = {
+  ): ZIO[Console, IOException, Unit] = {
     val placement = roundtable.seats(philosopher)
     val left = placement.left
     val right = placement.right
@@ -221,14 +219,17 @@ object StmDiningPhilosophers extends zio.App {
 
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
     val count = 10
-    def eaters(roundtable: Roundtable): Iterable[ZIO[Console, Nothing, Unit]] =
+    def eaters(
+        roundtable: Roundtable
+    ): Iterable[ZIO[Console, IOException, Unit]] =
       (0 to count).map(index => eat(index, roundtable))
-    for {
+
+    (for {
       table <- setupTable(count)
       fiber <- ZIO.forkAll(eaters(table))
       _ <- fiber.join
       _ <- putStrLn("All philosophers have eaten!")
-    } yield ExitCode.success
+    } yield ()).exitCode
   }
 }
 

@@ -3,6 +3,8 @@ import zio._
 import zio.clock.Clock
 import zio.console.Console
 import zio.duration.durationInt
+
+import java.io.IOException
 object PromiseApp extends App {
   val race: IO[String, Int] = for {
     p <- Promise.make[String, Int]
@@ -18,8 +20,8 @@ object PromiseApp extends App {
   } yield value
 
   val promiseDelay
-      : ZIO[Any with Clock with Has[Console.Service], Nothing, Int] = for {
-    promise <- Promise.make[Nothing, Int]
+      : ZIO[Any with Clock with Has[Console.Service], IOException, Int] = for {
+    promise <- Promise.make[IOException, Int]
     c <- ZIO.service[zio.console.Console.Service]
     _ <-
       promise

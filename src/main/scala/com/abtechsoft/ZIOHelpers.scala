@@ -2,9 +2,11 @@ package com.abtechsoft
 import zio.{ExitCode, URIO, ZIO}
 import zio.console
 import zio.console.Console
+
+import java.io.IOException
 object ZIOHelpers extends zio.App {
 
-  val sumAll: ZIO[Console, Nothing, Unit] = ZIO
+  val sumAll: ZIO[Console, IOException, Unit] = ZIO
     .reduceAll(
       ZIO.succeed(0),
       List(1, 2, 3, 4).map(i =>
@@ -13,7 +15,7 @@ object ZIOHelpers extends zio.App {
     )(_ + _)
     .flatMap(v => console.putStrLn(s"reduceAll : $v"))
 
-  val parSumAll: ZIO[Console, Nothing, Unit] = ZIO
+  val parSumAll: ZIO[Console, IOException, Unit] = ZIO
     .reduceAllPar(
       ZIO.succeed(0),
       List(1, 2, 3, 4)

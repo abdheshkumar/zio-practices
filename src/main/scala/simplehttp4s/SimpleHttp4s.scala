@@ -4,12 +4,11 @@ import cats.data.Kleisli
 import org.http4s.{HttpRoutes, Request, Response}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
-import org.http4s.server.blaze._
 import zio._
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import scala.concurrent.ExecutionContext.Implicits
-
+import org.http4s.blaze.server.BlazeServerBuilder
 object ioz extends Http4sDsl[Task]
 
 object SimpleHttp4s extends App {
@@ -27,7 +26,8 @@ object SimpleHttp4s extends App {
   val server: ZIO[ZEnv, Throwable, Unit] = ZIO
     .runtime[ZEnv]
     .flatMap { implicit rts =>
-      BlazeServerBuilder[Task](Implicits.global)
+      BlazeServerBuilder[Task]
+        .withExecutionContext(Implicits.global)
         .bindHttp(8080, "localhost")
         .withHttpApp(helloService)
         .serve

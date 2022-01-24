@@ -10,8 +10,9 @@ object ScheduleUtil extends zio.App {
     Schedule.spaced(1.second) && Schedule
       .recurs(4)
       .onDecision({
-        case Decision.Done(_)                 => putStrLn(s"done trying")
-        case Decision.Continue(attempt, _, _) => putStrLn(s"attempt #$attempt")
+        case Decision.Done(_) => putStrLn(s"done trying").ignore
+        case Decision.Continue(attempt, _, _) =>
+          putStrLn(s"attempt #$attempt").ignore
       })
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {

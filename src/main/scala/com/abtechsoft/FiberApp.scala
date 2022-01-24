@@ -12,7 +12,6 @@ object FiberApp extends zio.App {
     v <- fiberRef.get
   } yield v == 10
 
-
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    program.as(ExitCode.success)
+    program.exitCode
 }

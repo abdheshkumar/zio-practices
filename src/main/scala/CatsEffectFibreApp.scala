@@ -1,12 +1,10 @@
-import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-
-import scala.concurrent.duration.FiniteDuration
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.applicative._
-import cats.syntax.flatMap._
 import cats.syntax.apply._
+import cats.syntax.flatMap._
 import cats.syntax.parallel._
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.{FiniteDuration, _}
 
 object CatsEffectFibreApp extends IOApp {
   def put(s: String)(count: Int): IO[Unit] = IO(println(s + count))
@@ -86,17 +84,18 @@ object IOBlockerResourceApp extends IOApp {
   }
   override def run(args: List[String]): IO[ExitCode] = {
     val resource = for {
-      _ <- Resource.liftF(IO(println("Hello, worlds")))
+      _ <- Resource.eval(IO(println("Hello, worlds")))
       db <- getDatabase()
-      blocker <- Blocker[IO]
-      result <- Resource.liftF(runQuery(db, blocker))
-      _ <- Resource.liftF(IO(println(s"Got result: ${result}")))
+      result <- Resource.eval(runQuery(db))
+      _ <- Resource.eval(IO(println(s"Got result: ${result}")))
     } yield ()
     resource.use(_ => IO.pure(ExitCode.Success))
   }
 
   def getDatabase(): Resource[IO, Database] =
     Resource.make(IO(Database("host", 1234)))(_.close())
-  def runQuery(db: Database, blocker: Blocker): IO[String] =
-    blocker.blockOn(IO(db.result))
+
+  def runQuery(db: Database): IO[String] = {
+    IO.blocking(db.result)
+  }
 }

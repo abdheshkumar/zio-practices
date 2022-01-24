@@ -11,7 +11,7 @@ object ResourceExample extends IOApp {
     for {
       sqs <- Resource.fromAutoCloseable(IO(new Sqs))
       dynamoDB <- Resource.fromAutoCloseable(IO(new DynamoDB))
-      _ <- Resource.liftF(Service.businessLogic(dynamoDB, sqs))
+      _ <- Resource.eval(Service.businessLogic(dynamoDB, sqs))
     } yield ()
 
   object Service {

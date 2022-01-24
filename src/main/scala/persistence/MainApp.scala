@@ -1,7 +1,7 @@
 package persistence
 
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
-import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.CORS
 import persistence.api.Api
 import persistence.config.Config
@@ -13,11 +13,14 @@ import zio.clock.Clock
 import zio.logging.Logging
 import zio.interop.catz._
 import org.http4s.implicits._
-import cats.effect.{ExitCode => CatsExitCode}
 import persistence.User.UserService
 
 object MainApp extends zio.App {
-  type AppEnvironment = Config with Clock with Blocking with User.UserService with Logging
+  type AppEnvironment = Config
+    with Clock
+    with Blocking
+    with User.UserService
+    with Logging
 
   type AppTask[A] = RIO[AppEnvironment, A]
 
@@ -41,12 +44,13 @@ object MainApp extends zio.App {
           "/users" -> Api(s"${api.path}/users").route
         ).orNotFound
         blockingEC <- blocking.blocking(ZIO.descriptor.map(_.executor.asEC))
-        server <- ZIO.runtime[AppEnvironment].flatMap { implicit rts =>
-          BlazeServerBuilder[AppTask](blockingEC)
+        server <- ZIO.runtime[AppEnvironment].flatMap { _ =>
+          BlazeServerBuilder[AppTask]
+            .withExecutionContext(blockingEC)
             .bindHttp(api.port.value, api.host.value)
-            .withHttpApp(CORS(httpApp))
+            .withHttpApp(CORS.policy.withAllowOriginAll(httpApp))
             .serve
-            .compile//[AppTask, AppTask, CatsExitCode]
+            .compile
             .drain
         }
       } yield server

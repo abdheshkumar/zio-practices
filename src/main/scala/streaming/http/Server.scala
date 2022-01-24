@@ -2,48 +2,46 @@ package streaming.http
 
 import streaming.environment.Environments.AppEnvironment
 import streaming.environment.config.Configuration.HttpServerConfig
-import streaming.http.endpoints.{ CitiesEndpoint, HealthEndpoint }
+import streaming.http.endpoints.{CitiesEndpoint, HealthEndpoint}
 import cats.data.Kleisli
-import cats.effect.ExitCode
 import cats.implicits._
 import org.http4s.implicits._
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
-import org.http4s.server.middleware.{ AutoSlash, GZip }
-import org.http4s.{ HttpRoutes, Request, Response }
+import org.http4s.server.middleware.{AutoSlash, GZip}
+import org.http4s.{HttpRoutes, Request, Response}
 import zio.interop.catz._
-import zio.{ RIO, ZIO }
+import zio.{RIO, ZIO}
 
 object Server {
-  type ServerRIO[A] = RIO[AppEnvironment, A]
-  type ServerRoutes = Kleisli[ServerRIO, Request[ServerRIO], Response[ServerRIO]]
+  type AppTask[A] = RIO[AppEnvironment, A]
+  type ServerRoutes = Kleisli[AppTask, Request[AppTask], Response[AppTask]]
 
-  def runServer: ZIO[AppEnvironment, Nothing, Unit] =
+  def runServer =
     ZIO.runtime[AppEnvironment].flatMap { implicit rts =>
       val cfg = rts.environment.get[HttpServerConfig]
       val ec = rts.platform.executor.asEC
 
-      BlazeServerBuilder[ServerRIO](ec)
+      BlazeServerBuilder[AppTask].withExecutionContext(ec)
         .bindHttp(cfg.port, cfg.host)
         .withHttpApp(createRoutes(cfg.path))
         .serve
-        .compile[ServerRIO, ServerRIO, ExitCode]
+        .compile
         .drain
     }
-      .orDie
 
   def createRoutes(basePath: String): ServerRoutes = {
     val citiesRoutes = new CitiesEndpoint[AppEnvironment].routes
     val healthRoutes = new HealthEndpoint[AppEnvironment].routes
     val routes = citiesRoutes <+> healthRoutes
 
-    Router[ServerRIO](basePath -> middleware(routes)).orNotFound
+    Router[AppTask](basePath -> middleware(routes)).orNotFound
   }
 
-  private val middleware: HttpRoutes[ServerRIO] => HttpRoutes[ServerRIO] = {
-    { http: HttpRoutes[ServerRIO] =>
+  private val middleware: HttpRoutes[AppTask] => HttpRoutes[AppTask] = {
+    { http: HttpRoutes[AppTask] =>
       AutoSlash(http)
-    }.andThen { http: HttpRoutes[ServerRIO] =>
+    }.andThen { http: HttpRoutes[AppTask] =>
       GZip(http)
     }
   }

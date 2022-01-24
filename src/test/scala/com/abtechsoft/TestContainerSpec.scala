@@ -5,6 +5,7 @@ import org.flywaydb.core.Flyway
 import _root_.persistence.MainApp.transactor
 import _root_.persistence.User
 import _root_.persistence.User.UserService
+import org.testcontainers.utility.DockerImageName
 import zio.{ZIO, _}
 import zio.blocking.{Blocking, effectBlocking}
 import zio.clock.nanoTime
@@ -78,7 +79,7 @@ object TestContainer {
     ZManaged.make {
       effectBlocking {
         val container = new PostgreSQLContainer(
-          dockerImageNameOverride = imageName
+          dockerImageNameOverride = imageName.map(DockerImageName.parse)
         )
         container.start()
         container
@@ -105,7 +106,7 @@ object MigrationAspects {
       password: String,
       schema: String,
       locations: String*
-  ): RIO[Blocking, Int] =
+  ) =
     effectBlocking {
       Flyway
         .configure()

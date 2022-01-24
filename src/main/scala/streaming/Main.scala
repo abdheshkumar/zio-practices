@@ -10,6 +10,6 @@ object Main extends App {
       _ <- Server.runServer
     } yield ()
 
-    program.provideLayer(appEnvironment).exitCode
+    program.provideCustomLayer(appEnvironment).exitCode
   }
 }

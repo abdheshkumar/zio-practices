@@ -17,10 +17,10 @@ object ZIOStreamApp extends zio.App {
     ZStream(1, 2) ++ ZStream.fail(new RuntimeException)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    for {
+    (for {
       elems <- ZStream("Hello", "World").runCollect
       _ <- putStrLn(elems.mkString(" "))
-    } yield ExitCode.success
+    } yield ()).exitCode
 }
 
 object InfiniteStream extends zio.App {

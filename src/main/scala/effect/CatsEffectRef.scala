@@ -1,7 +1,6 @@
 package effect
 
-import cats.effect.concurrent.Ref
-import cats.effect.{ExitCode, IO, IOApp, Sync}
+import cats.effect.{ExitCode, IO, IOApp, Ref, Sync}
 import cats.implicits.showInterpolator
 import cats.implicits._
 object CatsEffectRef extends IOApp {

@@ -1,12 +1,12 @@
 package persistence
 
 import scala.concurrent.ExecutionContext
-import cats.effect.Blocker
 import doobie.hikari.HikariTransactor
 import doobie.util.transactor.Transactor
 import persistence.config.{Config, DBConfig}
 import zio.blocking.Blocking
 import zio.interop.catz._
+import zio.interop.catz.implicits.rts
 import zio.logging.Logging
 import zio.{Has, Managed, Task, URIO, ZIO, ZLayer, ZManaged, blocking}
 
@@ -16,9 +16,8 @@ package object dbtransactor {
 
   object DBTransactor {
     private def makeTransactor(
-                                conf: DBConfig,
-                                connectEC: ExecutionContext,
-                                transactEC: ExecutionContext
+        conf: DBConfig,
+        connectEC: ExecutionContext
     ): Managed[Throwable, Transactor[Task]] =
       HikariTransactor
         .newHikariTransactor[Task](
@@ -26,8 +25,7 @@ package object dbtransactor {
           conf.url.value,
           conf.user,
           conf.password,
-          connectEC,
-          Blocker.liftExecutionContext(transactEC)
+          connectEC
         )
         .toManagedZIO
 
@@ -37,9 +35,7 @@ package object dbtransactor {
       for {
         config <- Config.dbConfig.toManaged_
         connectEC <- ZIO.descriptor.map(_.executor.asEC).toManaged_
-        blockingEC <-
-          blocking.blocking(ZIO.descriptor.map(_.executor.asEC)).toManaged_
-        transactor <- makeTransactor(config, connectEC, blockingEC)
+        transactor <- makeTransactor(config, connectEC)
       } yield transactor
 
     /*val managedWithMigration: ZManaged[Has[
@@ -47,8 +43,7 @@ package object dbtransactor {
     ] with Logging with Blocking, Throwable, Transactor[Task]] =
       Migration.migrate.toManaged_ *> managed*/
 
-    val test
-        : ZLayer[Has[DBConfig] with Blocking, Throwable, DBTransactor] =
+    val test: ZLayer[Has[DBConfig] with Blocking, Throwable, DBTransactor] =
       ZLayer.fromManaged(managed)
 
     val live: ZLayer[Has[

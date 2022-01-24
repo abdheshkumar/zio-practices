@@ -5,6 +5,7 @@ import streaming.environment.config.Configuration.DbConfig
 import doobie.util.transactor.Transactor
 import zio._
 import zio.interop.catz._
+import zio.interop.catz.implicits.rts
 
 package object repository {
 
