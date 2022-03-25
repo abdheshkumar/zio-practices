@@ -3,6 +3,8 @@ import zio._
 import zio.clock.Clock
 import zio.random.Random
 object ZLayerApp {
+
+
   type Names = Has[Names.Service]
   type Teams = Has[Teams.Service]
   type History = Has[History.Service]
@@ -23,6 +25,7 @@ object ZLayerApp {
 
     val live: ZLayer[Random, Nothing, Names] =
       ZLayer.fromService(namesImpl)
+
     def randomName = ZIO.accessM[Names](_.get.randomName)
   }
 

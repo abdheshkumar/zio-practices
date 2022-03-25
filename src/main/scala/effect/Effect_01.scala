@@ -5,6 +5,7 @@ object Effect_01 {
   //A pure function must be total
   //1-
   object P1 {
+
     def divide(a: Int, b: Int): Int = a / b
 
     divide(5, 0)

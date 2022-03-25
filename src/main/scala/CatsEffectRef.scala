@@ -1,7 +1,4 @@
-package effect
-
-import cats.effect.{ExitCode, IO, IOApp, Ref, Sync}
-import cats.implicits.showInterpolator
+import cats.effect._
 import cats.implicits._
 object CatsEffectRef extends IOApp {
   val program: IO[Unit] =

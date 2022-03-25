@@ -14,12 +14,10 @@ object ZioAppExample extends zio.App {
 
   def run(args: List[String]): URIO[ZEnv, ExitCode] =
     program.exitCode
-  //program.provideLayer(zio.ZEnv.any).flatMap(_ => ZIO.succeed(0))
 }
 
 object PrintSequence extends zio.App {
   override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    //putStrLn("Hello").zipRight(putStrLn("World"))
     (putStrLn("Hello") *> putStrLn("World")).exitCode //*> is zipRight
   }
 }
@@ -32,7 +30,7 @@ object ErrorRecovery extends zio.App {
     //failed as 0 //Not compile because error is a String type
     //(failed as 0) orElse ZIO.succeed(1)
     //failed.fold(_ => 1, _ => 0)
-    (failed)
+    failed
       .catchAllCause(cause => putStrLn(s"${cause.prettyPrint}"))
       .exitCode
   }

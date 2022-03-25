@@ -1,0 +1,11 @@
+GET http://localhost:8080/statuses
+Accept: application/json
+
+###
+POST http://localhost:8080/create
+Content-Type: application/json
+
+{"name":  "test-user"}
+
+###
+

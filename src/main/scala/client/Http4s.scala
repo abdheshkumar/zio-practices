@@ -12,7 +12,7 @@ import zio.interop.catz._
 final case class Http4s(client: Client[Task])
     extends HttpClient.Service
     with Http4sClientDsl[Task] {
-
+  protected val rootUrl = "http://www.transparencia.gov.br/api-de-dados/"
   def get[T](resource: String, parameters: Map[String, String])(implicit
       d: Decoder[T]
   ): Task[T] = {

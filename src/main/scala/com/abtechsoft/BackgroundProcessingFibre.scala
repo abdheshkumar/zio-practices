@@ -4,7 +4,7 @@ import zio.console
 import zio.duration._
 import zio.clock.Clock
 
-object BackgroundProcessing extends zio.App {
+object BackgroundProcessingFibre extends zio.App {
 
   val effect: RIO[Clock, Int] = for {
     _ <-

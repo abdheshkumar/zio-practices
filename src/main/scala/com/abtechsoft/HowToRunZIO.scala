@@ -7,16 +7,7 @@ import zio.console._
 
 import java.io.IOException
 
-object MainWithZIOApp extends zio.App {
-
-  val program: ZIO[Console, IOException, Unit] = putStrLn("Hello, world")
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    //program.fold(_ => 1, _ => 0)
-    program.exitCode
-  }
-}
-
-object Main01 {
+object MainWithoutZIOApp {
   val program: ZIO[Console, IOException, Unit] = putStrLn("Hello, world")
 
   def main(args: Array[String]): Unit = {
@@ -24,9 +15,19 @@ object Main01 {
   }
 }
 
+object MainWithZIOApp extends zio.App {
+
+  val program: ZIO[Console, IOException, Unit] = putStrLn("Hello, world")
+  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+    program.exitCode
+  }
+}
+
 object FatalErrorMain extends zio.App {
   override val platform: Platform = Platform.default.withFatal(_ => true)
+
   def simpleName[A](c: Class[A]) = c.getSimpleName
+
   override def run(args: List[String]): URIO[ZEnv, ExitCode] =
     Task(simpleName(FatalErrorMain.getClass))
       .fold(_ => ExitCode.failure, _ => ExitCode.success)

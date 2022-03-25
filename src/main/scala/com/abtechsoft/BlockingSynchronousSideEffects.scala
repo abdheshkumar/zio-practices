@@ -1,7 +1,7 @@
 package com.abtechsoft
 import zio._
 import zio.blocking.blocking
-
+import zio.blocking._
 import scala.io.{Codec, Source}
 object BlockingSynchronousSideEffects extends zio.App {
 
@@ -14,7 +14,7 @@ object BlockingSynchronousSideEffects extends zio.App {
     blocking(download(url))
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
-    import zio.blocking._
+
 //The resulting effect will be executed on a separate thread pool designed specifically for blocking effects.
     val sleeping: RIO[Blocking, Unit] = effectBlocking {
       println("Running blocking" + Thread.currentThread().getName)

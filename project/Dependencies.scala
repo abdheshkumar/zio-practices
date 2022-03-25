@@ -17,11 +17,37 @@ object Dependencies {
     val zioMacros = zioM("zio-macros")
     val zioTest = zioM("zio-test") % Test
     val zioTestSbt = zioM("zio-test-sbt") % Test
+
+    val config = Seq(
+      "dev.zio" %% "zio-config" % "2.0.0",
+      "dev.zio" %% "zio-config-magnolia" % "2.0.0",
+      "dev.zio" %% "zio-config-typesafe" % "2.0.0",
+      "dev.zio" %% "zio-config-refined" % "2.0.0"
+    )
+    val kafka = "dev.zio" %% "zio-kafka" % "0.17.3"
     val zioInteropCats =
       "dev.zio" %% "zio-interop-cats" % "3.2.9.0"
     val zioLogging = "dev.zio" %% "zio-logging" % "0.5.14"
     val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "0.5.14"
     val zioMagic = "io.github.kitlangton" %% "zio-magic" % "0.3.11"
+
+    object Versions {
+      val jaeger = "1.8.0"
+      val sttp3 = "3.3.17"
+      val opentelemetry = "1.10.0"
+      val zipkin = "2.16.3"
+      val zioHttp = "1.0.0.0-RC17"
+      val zioJson = "0.1.5"
+      val zioConfig = "2.0.0"
+    }
+    val opentelemetry = Seq(
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % Versions.sttp3,
+      "com.softwaremill.sttp.client3" %% "zio-json" % Versions.sttp3,
+      "io.d11" %% "zhttp" % Versions.zioHttp,
+      "dev.zio" %% "zio-json" % Versions.zioJson,
+      "io.opentelemetry" % "opentelemetry-exporter-jaeger" % Versions.opentelemetry,
+      "dev.zio" %% "zio-opentelemetry" % "0.9.0"
+    )
     val all = Seq(
       zio,
       zioStreams,
@@ -31,8 +57,9 @@ object Dependencies {
       zioTest,
       zioTestSbt,
       loggingSlf4j,
-      zioMagic
-    )
+      zioMagic,
+      kafka
+    ) ++ config ++ opentelemetry
   }
   object FlyWay {
     def flyway(artifact: String) =
