@@ -65,7 +65,7 @@ object Dependencies {
     def flyway(artifact: String) =
       "org.flywaydb" % artifact % "8.4.1"
     val flyWayCore = flyway("flyway-core")
-    val driver = "org.postgresql" % "postgresql" % "42.3.1"
+    val driver = "org.postgresql" % "postgresql" % "42.5.0"
     val all = Seq(flyWayCore, driver)
   }
 
