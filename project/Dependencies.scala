@@ -19,7 +19,7 @@ object Dependencies {
     val zioTestSbt = zioM("zio-test-sbt") % Test
 
     val config = Seq(
-      "dev.zio" %% "zio-config" % "2.0.9",
+      "dev.zio" %% "zio-config" % "3.0.2",
       "dev.zio" %% "zio-config-magnolia" % "3.0.2",
       "dev.zio" %% "zio-config-typesafe" % "3.0.2",
       "dev.zio" %% "zio-config-refined" % "3.0.2"
