@@ -28,7 +28,7 @@ object Dependencies {
     val zioInteropCats =
       "dev.zio" %% "zio-interop-cats" % "3.2.9.0"
     val zioLogging = "dev.zio" %% "zio-logging" % "2.1.2"
-    val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "0.5.14"
+    val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "2.1.2"
     val zioMagic = "io.github.kitlangton" %% "zio-magic" % "0.3.11"
 
     object Versions {
