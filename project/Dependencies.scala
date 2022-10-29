@@ -98,7 +98,7 @@ object Dependencies {
     val refined = doobie("doobie-refined")
     val quill = doobie("doobie-quill")
     val doobieH2 = doobie("doobie-h2")
-    val quillJdbc = "io.getquill" %% "quill-jdbc" % "3.7.2"
+    val quillJdbc = "io.getquill" %% "quill-jdbc" % "4.6.0"
     val h2 = "com.h2database" % "h2" % "2.1.214"
     val all: Seq[ModuleID] =
       Seq(core, hikari, refined, postgres, quill, h2, quillJdbc, doobieH2)
