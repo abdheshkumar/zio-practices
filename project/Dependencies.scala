@@ -29,7 +29,7 @@ object Dependencies {
       "dev.zio" %% "zio-interop-cats" % "22.0.0.0"
     val zioLogging = "dev.zio" %% "zio-logging" % "2.1.2"
     val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "2.1.2"
-    val zioMagic = "io.github.kitlangton" %% "zio-magic" % "0.3.11"
+    val zioMagic = "io.github.kitlangton" %% "zio-magic" % "0.3.12"
 
     object Versions {
       val jaeger = "1.8.0"
@@ -65,7 +65,7 @@ object Dependencies {
     def flyway(artifact: String) =
       "org.flywaydb" % artifact % "8.4.1"
     val flyWayCore = flyway("flyway-core")
-    val driver = "org.postgresql" % "postgresql" % "42.3.1"
+    val driver = "org.postgresql" % "postgresql" % "42.5.0"
     val all = Seq(flyWayCore, driver)
   }
 
@@ -106,12 +106,12 @@ object Dependencies {
 
   object Config {
     val pureConfig = "com.github.pureconfig" %% "pureconfig" % "0.17.1"
-    val pureconfigRefined = "eu.timepit" %% "refined-pureconfig" % "0.9.28"
+    val pureconfigRefined = "eu.timepit" %% "refined-pureconfig" % "0.10.1"
     val all = Seq(pureConfig, pureconfigRefined)
   }
 
   object Logback {
-    val logback = "ch.qos.logback" % "logback-classic" % "1.2.10"
+    val logback = "ch.qos.logback" % "logback-classic" % "1.4.4"
     val all = Seq(logback)
   }
 
