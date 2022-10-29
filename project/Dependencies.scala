@@ -27,7 +27,7 @@ object Dependencies {
     val kafka = "dev.zio" %% "zio-kafka" % "0.17.3"
     val zioInteropCats =
       "dev.zio" %% "zio-interop-cats" % "3.2.9.0"
-    val zioLogging = "dev.zio" %% "zio-logging" % "0.5.14"
+    val zioLogging = "dev.zio" %% "zio-logging" % "2.1.2"
     val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "0.5.14"
     val zioMagic = "io.github.kitlangton" %% "zio-magic" % "0.3.11"
 
