@@ -20,7 +20,7 @@ object Dependencies {
 
     val config = Seq(
       "dev.zio" %% "zio-config" % "2.0.9",
-      "dev.zio" %% "zio-config-magnolia" % "2.0.0",
+      "dev.zio" %% "zio-config-magnolia" % "3.0.2",
       "dev.zio" %% "zio-config-typesafe" % "3.0.2",
       "dev.zio" %% "zio-config-refined" % "2.0.0"
     )
