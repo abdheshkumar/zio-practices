@@ -29,7 +29,7 @@ object Dependencies {
     val zioInteropCats =
       "dev.zio" %% "zio-interop-cats" % "3.3.0"
     val zioLogging = "dev.zio" %% "zio-logging" % "2.1.2"
-    val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "2.1.2"
+    val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "2.1.3"
 
     object Versions {
       val jaeger = "1.8.0"
