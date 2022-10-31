@@ -1,16 +1,13 @@
 package com.abtechsoft
 
-import zio._
-import zio.test._
-import zio.random.Random
-import Assertion._
 import com.abtechsoft.ZLayerApp.{History, History2, Names, Teams}
-import zio.clock.Clock
+import zio.test.Assertion._
+import zio.test._
 
-object ZLayerAppSpec extends DefaultRunnableSpec {
+object ZLayerAppSpec extends ZIOSpecDefault {
 
-  def namesTest: ZSpec[Names, Nothing] =
-    testM("names test") {
+  def namesTest: Spec[Names, Nothing] =
+    test("names test") {
       for {
         name <- Names.randomName
       } yield {
@@ -18,8 +15,8 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
       }
     }
 
-  def justTeamsTest: ZSpec[Teams, Nothing] =
-    testM("small team test") {
+  def justTeamsTest: Spec[Teams, Nothing] =
+    test("small team test") {
       for {
         team <- Teams.pickTeam(1)
       } yield {
@@ -27,8 +24,8 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
       }
     }
 
-  def inMyTeam: ZSpec[Teams with Names, Nothing] =
-    testM("combines names and teams") {
+  def inMyTeam: Spec[Teams with Names, Nothing] =
+    test("combines names and teams") {
       for {
         name <- Names.randomName
         team <- Teams.pickTeam(5)
@@ -39,7 +36,7 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
     }
 
   def wonLastYear =
-    testM("won last year") {
+    test("won last year") {
       for {
         team <- Teams.pickTeam(5)
         _ <- History.wonLastYear(team)
@@ -47,7 +44,7 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
     }
 
   def wonLastYear2 =
-    testM("won last year") {
+    test("won last year") {
       for {
         team <- Teams.pickTeam(5)
         _ <- History2.wonLastYear(team)
@@ -57,26 +54,26 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
   val individually = suite("individually")(
     suite("needs Names")(
       namesTest
-    ).provideCustomLayer(Names.live),
+    ).provideLayer(Names.live),
     suite("needs just Team")(
       justTeamsTest
-    ).provideCustomLayer(Names.live >>> Teams.live),
+    ).provideLayer(Names.live >>> Teams.live),
     suite("needs Names and Teams")(
       inMyTeam
-    ).provideCustomLayer(Names.live ++ (Names.live >>> Teams.live)),
+    ).provideLayer(Names.live ++ (Names.live >>> Teams.live)),
     suite("needs History and Teams")(
       wonLastYear
-    ).provideCustomLayerShared(
+    ).provideLayer(
       (Names.live >>> Teams.live) ++ (Names.live >>> Teams.live >>> History.live)
     ),
     suite("needs History2 and Teams")(
       wonLastYear2
-    ).provideCustomLayerShared(
-      (Names.live >>> Teams.live) ++ (((Names.live >>> Teams.live) ++ Clock.any) >>> History2.live)
+    ).provideLayer(
+      (Names.live >>> Teams.live) ++ (Names.live >>> Teams.live >>> History2.live)
     )
   )
 
-  val altogether: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = suite("all together")(
+  val altogether = suite("all together")(
     suite("needs Names")(
       namesTest
     ),
@@ -89,10 +86,10 @@ object ZLayerAppSpec extends DefaultRunnableSpec {
     suite("needs History and Teams")(
       wonLastYear
     )
-  ).provideCustomLayerShared(
+  ).provideLayer(
     Names.live ++ (Names.live >>> Teams.live) ++ (Names.live >>> Teams.live >>> History.live)
   )
 
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-  suite("All ZLayer")(altogether, individually)
+  override def spec =
+    suite("All ZLayer")(altogether, individually)
 }

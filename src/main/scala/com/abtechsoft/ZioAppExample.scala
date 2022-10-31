@@ -4,114 +4,118 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 import zio._
-import zio.console._
-import zio.console.Console
+import zio.Console
 
-object ZioAppExample extends zio.App {
+object ZioAppExample extends zio.ZIOAppDefault {
 
-  val program: ZIO[Console, IOException, Unit] =
-    putStrLn("TicTacToe game!")
+  val program: ZIO[Any, IOException, Unit] =
+    Console.printLine("TicTacToe game!")
 
-  def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    program.exitCode
+  def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = program
 }
 
-object PrintSequence extends zio.App {
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    (putStrLn("Hello") *> putStrLn("World")).exitCode //*> is zipRight
+object PrintSequence extends zio.ZIOAppDefault {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
+    Console.printLine("Hello") *> Console.printLine("World") //*> is zipRight
   }
 }
 
-object ErrorRecovery extends zio.App {
-  val failed = putStrLn("About to fail...") *> ZIO.fail("Uh oh!") *> putStrLn(
+object ErrorRecovery extends zio.ZIOAppDefault {
+  val failed = Console.printLine("About to fail...") *> ZIO.fail(
+    "Uh oh!"
+  ) *> Console.printLine(
     "This will NEVER be printed"
   )
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     //failed as 0 //Not compile because error is a String type
     //(failed as 0) orElse ZIO.succeed(1)
     //failed.fold(_ => 1, _ => 0)
     failed
-      .catchAllCause(cause => putStrLn(s"${cause.prettyPrint}"))
+      .catchAllCause(cause => Console.printLine(s"${cause.prettyPrint}"))
       .exitCode
   }
 }
 
-object Looping extends zio.App {
+object Looping extends zio.ZIOAppDefault {
 
   def repeat[R, E, A](n: Int)(effect: ZIO[R, E, A]): ZIO[R, E, A] = {
     if (n <= 1) effect
     else effect *> repeat(n - 1)(effect)
   }
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     repeat(100)(
-      putStrLn("All work and no play makes Jack a dull boy")
+      Console.printLine("All work and no play makes Jack a dull boy")
     ).exitCode
   }
 }
 
-object PromptName extends zio.App {
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
-    /* putStrLn("What is your name?") *> getStrLn
-      .flatMap(name => putStrLn(s"Hello ${name}")) //We can use for-comprehension
+object PromptName extends zio.ZIOAppDefault {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
+    /* Console.printLine("What is your name?") *> Console.readLine
+      .flatMap(name => Console.printLine(s"Hello ${name}")) //We can use for-comprehension
       .fold(_ => 1, _ => 0)*/
     //
     (for {
-      _ <- putStrLn("What is your name?")
-      name <- getStrLn
-      _ <- putStrLn(s"Hello ${name}")
+      _ <- Console.printLine("What is your name?")
+      name <- Console.readLine
+      _ <- Console.printLine(s"Hello ${name}")
     } yield ExitCode.success).orElse(ZIO.succeed(ExitCode.failure))
   }
 }
 
-object NumberGuesser extends zio.App {
-  import zio.random._
+object NumberGuesser extends zio.ZIOAppDefault {
   def analyzeAnswer(random: Int, guess: String) =
-    if (random.toString == guess.trim) putStrLn("You guessed correctly!")
-    else putStrLn(s"You did not guess correctly. The answer was ${random}")
+    if (random.toString == guess.trim)
+      Console.printLine("You guessed correctly!")
+    else
+      Console.printLine(
+        s"You did not guess correctly. The answer was ${random}"
+      )
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     (for {
-      random <- nextIntBounded(3)
-      _ <- putStrLn("Please guess a number from 0 to 3:")
-      guess <- getStrLn
+      random <- Random.nextIntBounded(3)
+      _ <- Console.printLine("Please guess a number from 0 to 3:")
+      guess <- Console.readLine
       _ <- analyzeAnswer(random, guess)
     } yield ExitCode.success) orElse ZIO.succeed(ExitCode.success)
   }
 }
 
-object AlarmAppImproved extends zio.App {
-  import zio.duration._
+object AlarmAppImproved extends zio.ZIOAppDefault {
   def toDoubles(s: String): Either[NumberFormatException, Double] =
     try (Right(s.toDouble))
     catch { case e: NumberFormatException => Left(e) }
 
-  lazy val getAlarmDuration: ZIO[Console, IOException, Duration] = {
+  lazy val getAlarmDuration: ZIO[Any, IOException, Duration] = {
     def parseDuration(input: String) =
       toDoubles(input).map(double =>
         Duration((double * 1000.0).toLong, TimeUnit.MILLISECONDS)
       )
     val fallback =
-      putStrLn("You didn't enter the number of seconds!") *> getAlarmDuration
+      Console.printLine(
+        "You didn't enter the number of seconds!"
+      ) *> getAlarmDuration
     for {
-      _ <- putStrLn("Please enter the number of seconds to sleep:")
-      input <- getStrLn
+      _ <- Console.printLine("Please enter the number of seconds to sleep:")
+      input <- Console.readLine
       duration <- ZIO.fromEither(parseDuration(input)) orElse fallback
     } yield duration
   }
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     (for {
       duration <- getAlarmDuration
-      fiber <- (putStrLn(".") *> ZIO.sleep(1.second)).forever.fork
-      _ <- putStrLn("Time to wake up!!").delay(duration) *> fiber.interrupt
+      fiber <- (Console.printLine(".") *> ZIO.sleep(1.second)).forever.fork
+      _ <-
+        Console
+          .printLine("Time to wake up!!")
+          .delay(duration) *> fiber.interrupt
     } yield ExitCode.success) orElse ZIO.succeed(ExitCode.failure)
   }
 }
 
-object ComputePi extends zio.App {
-
-  import zio.random._
-  import zio.duration._
+object ComputePi extends zio.ZIOAppDefault {
 
   final case class PiState(inside: Long, total: Long)
 
@@ -121,10 +125,10 @@ object ComputePi extends zio.App {
   def insideCircle(x: Double, y: Double): Boolean =
     Math.sqrt(x * x + y * y) <= 1.0
 
-  val randomPoint: ZIO[Random, Nothing, (Double, Double)] =
-    nextDouble zip nextDouble
+  val randomPoint: ZIO[Any, Nothing, (Double, Double)] =
+    Random.nextDouble zip Random.nextDouble
 
-  def updateOnce(ref: Ref[PiState]): ZIO[Random, Nothing, Unit] = {
+  def updateOnce(ref: Ref[PiState]): ZIO[Any, Nothing, Unit] = {
     for {
       tuple <- randomPoint
       (x, y) = tuple
@@ -133,27 +137,26 @@ object ComputePi extends zio.App {
     } yield ()
   }
 
-  def printEstimate(ref: Ref[PiState]): ZIO[Console, IOException, Unit] =
+  def printEstimate(ref: Ref[PiState]): ZIO[Any, IOException, Unit] =
     for {
       state <- ref.get
-      _ <- putStrLn(s"${estimatePi(state.inside, state.total)}")
+      _ <- Console.printLine(s"${estimatePi(state.inside, state.total)}")
     } yield ()
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     (for {
       ref <- Ref.make(PiState(0L, 0L))
       worker = updateOnce(ref).forever
       _ = List.fill(4)(worker)
       //fiber1 <- ZIO.forkAll(workers) //Not working
       fiber2 <- (printEstimate(ref) *> ZIO.sleep(1.second)).forever.fork
-      _ <- putStrLn("Enter any key to terminate...")
-      _ <- getStrLn *> (/*fiber1 zip */ fiber2).interrupt
+      _ <- Console.printLine("Enter any key to terminate...")
+      _ <- Console.readLine *> (/*fiber1 zip */ fiber2).interrupt
     } yield ExitCode.success) orElse ZIO.succeed(ExitCode.failure)
   }
 }
 
-object StmDiningPhilosophers extends zio.App {
-  import zio.clock._
+object StmDiningPhilosophers extends zio.ZIOAppDefault {
   import zio.stm._
 
   final case class Fork(number: Int)
@@ -203,37 +206,35 @@ object StmDiningPhilosophers extends zio.App {
   def eat(
       philosopher: Int,
       roundtable: Roundtable
-  ): ZIO[Console, IOException, Unit] = {
+  ): ZIO[Any, IOException, Unit] = {
     val placement = roundtable.seats(philosopher)
     val left = placement.left
     val right = placement.right
     for {
       forks <- takeForks(left, right).commit
-      _ <- putStrLn(s"Philosopher ${philosopher} eating...")
+      _ <- Console.printLine(s"Philosopher ${philosopher} eating...")
       _ <- putForks(left, right)(forks).commit
-      _ <- putStrLn(s"Philosopher ${philosopher} is done eating")
+      _ <- Console.printLine(s"Philosopher ${philosopher} is done eating")
     } yield ()
   }
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     val count = 10
     def eaters(
         roundtable: Roundtable
-    ): Iterable[ZIO[Console, IOException, Unit]] =
+    ): Iterable[ZIO[Any, IOException, Unit]] =
       (0 to count).map(index => eat(index, roundtable))
 
     (for {
       table <- setupTable(count)
       fiber <- ZIO.forkAll(eaters(table))
       _ <- fiber.join
-      _ <- putStrLn("All philosophers have eaten!")
+      _ <- Console.printLine("All philosophers have eaten!")
     } yield ()).exitCode
   }
 }
 
-object Actors extends zio.App {
-  import zio.console._
-  import zio.stm._
+object Actors extends zio.ZIOAppDefault {
   sealed trait Command
   case object ReadTemperature extends Command
   final case class AdjustTemperature(value: Double) extends Command
@@ -261,7 +262,7 @@ object Actors extends zio.App {
         .flatMap(p => queue.offer(c -> p) *> p.await)
   }
 
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     val temperatures = (0 to 100).map(_.toDouble)
     (for {
       actor <- makActor(0)
@@ -269,7 +270,7 @@ object Actors extends zio.App {
         ZIO
           .foreachPar(temperatures)(temp => actor(AdjustTemperature(temp)))
       temp <- actor(ReadTemperature)
-      _ <- putStrLn(s"Final temperature is ${temp}")
+      _ <- Console.printLine(s"Final temperature is ${temp}")
     } yield ExitCode.success) orElse ZIO.succeed(ExitCode.failure)
   }
 }

@@ -1,15 +1,15 @@
 package streaming
 
-import streaming.environment.Environments.appEnvironment
+import streaming.environment.config.Configuration
+import streaming.environment.repository.{CitiesRepository, DbTransactor}
 import streaming.http.Server
-import zio._
 
-object Main extends App {
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] = {
+object Main extends zio.ZIOAppDefault {
+  def run = {
     val program = for {
       _ <- Server.runServer
     } yield ()
 
-    program.provideCustomLayer(appEnvironment).exitCode
+    program.provide(Configuration.live, CitiesRepository.live, DbTransactor.h2)
   }
 }

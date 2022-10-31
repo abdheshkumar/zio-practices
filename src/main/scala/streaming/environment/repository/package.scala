@@ -1,7 +1,7 @@
 package streaming.environment
 
 import streaming.domain.City
-import streaming.environment.config.Configuration.DbConfig
+import streaming.environment.config.Configuration.{AppConfig, DbConfig}
 import doobie.util.transactor.Transactor
 import zio._
 import zio.interop.catz._
@@ -9,27 +9,33 @@ import zio.interop.catz.implicits.rts
 
 package object repository {
 
-  type DbTransactor = Has[DbTransactor.Resource]
-  type CitiesRepository = Has[CitiesRepository.Service]
+  type DbTransactor = DbTransactor.Resource
+  type CitiesRepository = CitiesRepository.Service
 
   def allCities: RIO[CitiesRepository, fs2.Stream[Task, City]] =
-    RIO.access(_.get.all)
+    ZIO.serviceWith(_.all)
 
   def cityById(id: Int): RIO[CitiesRepository, Task[Option[City]]] =
-    RIO.access(_.get.byId(id))
+    ZIO.serviceWith(_.byId(id))
 
-  def citiesByCountry(country: String): RIO[CitiesRepository, fs2.Stream[Task, City]] =
-    RIO.access(_.get.byCountry(country))
+  def citiesByCountry(
+      country: String
+  ): RIO[CitiesRepository, fs2.Stream[Task, City]] =
+    ZIO.serviceWith(_.byCountry(country))
 
   object DbTransactor {
     trait Resource {
       val xa: Transactor[Task]
     }
 
-    val h2: URLayer[Has[DbConfig], DbTransactor] = ZLayer.fromService { db =>
-      new Resource {
-        val xa: Transactor[Task] =
-          Transactor.fromDriverManager(db.driver, db.url, db.user, db.password)
+    val h2: URLayer[AppConfig, DbTransactor] = ZLayer {
+      ZIO.service[AppConfig].map { appConfig =>
+        val db = appConfig.dbConfig
+        new Resource {
+          val xa: Transactor[Task] =
+            Transactor
+              .fromDriverManager(db.driver, db.url, db.user, db.password)
+        }
       }
     }
   }

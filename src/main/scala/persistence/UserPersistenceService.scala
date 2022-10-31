@@ -6,8 +6,7 @@ import persistence.UserPersistenceService._
 import zio.Task
 import zio.interop.catz._
 
-class UserPersistenceService(trx: Transactor[Task])
-    extends User.Service[User] {
+class UserPersistenceService(trx: Transactor[Task]) extends User.Service[User] {
   override def create(user: User): Task[User] = {
     Queries
       .create(user)

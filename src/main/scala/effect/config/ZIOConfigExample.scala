@@ -6,9 +6,8 @@ import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.numeric.GreaterEqual
 import zio.config.magnolia.{describe, descriptor}
 import zio.config.typesafe.TypesafeConfigSource
-import zio.console.{Console, putStrLn}
 import zio.{ExitCode, URIO, ZIO}
-
+import zio.Console
 sealed trait DataSource
 
 final case class Database(
@@ -25,7 +24,7 @@ final case class Kafka(
     brokers: List[String]
 ) extends DataSource
 
-object ZIOConfigExample extends zio.App {
+object ZIOConfigExample extends zio.ZIOAppDefault {
   import zio.config._
   import zio.config.refined._
 
@@ -37,21 +36,21 @@ object ZIOConfigExample extends zio.App {
        |}
        |""".stripMargin
 
-  val myApp: ZIO[Console, Throwable, Unit] =
+  val myApp: ZIO[Any, Throwable, Unit] =
     for {
-      source <- ZIO(TypesafeConfigSource.fromHoconString(json))
+      source <- ZIO.attempt(TypesafeConfigSource.fromHoconString(json))
       desc = descriptor[DataSource] from source
       dataSource <- read(desc)
       // Printing Auto Generated Documentation of Application Config
-      _ <- putStrLn(generateDocs(desc).toTable.toGithubFlavouredMarkdown)
+      _ <-
+        Console.printLine(generateDocs(desc).toTable.toGithubFlavouredMarkdown)
       _ <- dataSource match {
         case Database(host, port) =>
-          putStrLn(s"Start connecting to the database: $host:$port")
+          Console.printLine(s"Start connecting to the database: $host:$port")
         case Kafka(_, brokers) =>
-          putStrLn(s"Start connecting to the kafka brokers: $brokers")
+          Console.printLine(s"Start connecting to the kafka brokers: $brokers")
       }
     } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    myApp.exitCode
+  override def run = myApp
 }

@@ -1,33 +1,38 @@
-import zio.console.Console
-import zio.{ExitCode, IO, UIO, URIO, ZIO, console}
+import zio.{
+  Console,
+  ExitCode,
+  IO,
+  Scope,
+  UIO,
+  URIO,
+  ZIO,
+  ZIOAppArgs,
+  ZIOAppDefault
+}
 
+import java.io.IOException
 import scala.util.Random
+object HelloZIO extends ZIOAppDefault {
 
-import cats.Apply
-object HelloZIO extends zio.App {
-
-  val effectOnce: UIO[ZIO[Any, Throwable, Int]] = IO(Random.nextInt()).memoize
-  def p1: ZIO[Console, Throwable, Unit] =
+  val effectOnce: UIO[ZIO[Any, Nothing, Int]] =
+    ZIO.succeed(Random.nextInt()).memoize
+  def p1: ZIO[Any, IOException, Unit] =
     for {
       e <- effectOnce
       ee <- e
-      _ <- console.putStrLn(ee.toString)
+      _ <- Console.printLine(ee.toString)
     } yield ()
 
-  def p2: ZIO[Console, Throwable, Unit] =
+  def p2: ZIO[Any, IOException, Unit] =
     for {
       e <- effectOnce
       ee <- e
-      _ <- console.putStrLn(ee.toString)
+      _ <- Console.printLine(ee.toString)
     } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
-
-    (
-      for {
-        _ <- p1
-        _ <- p2
-      } yield ()
-    ).exitCode
-  }
+  def run: ZIO[Environment with ZIOAppArgs with Scope, Any, Any] =
+    for {
+      _ <- p1
+      _ <- p2
+    } yield ()
 }

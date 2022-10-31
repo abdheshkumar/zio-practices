@@ -1,25 +1,18 @@
 package effect.kafka
 
 import zio._
-import zio.blocking.Blocking
-import zio.clock.Clock
-import zio.console.putStrLn
-import zio.duration.durationInt
 import zio.kafka.consumer.{Consumer, ConsumerSettings, _}
 import zio.kafka.producer.{Producer, ProducerSettings}
 import zio.kafka.serde._
-import zio.random.Random
 import zio.stream.ZStream
 
-object ZIOKafkaProducerConsumerExample extends zio.App {
+object ZIOKafkaProducerConsumerExample extends zio.ZIOAppDefault {
 
-  val producer: ZStream[Any with Has[
-    Producer
-  ] with Random with Clock, Throwable, Nothing] =
+  val producer: ZStream[Producer, Throwable, Nothing] =
     ZStream
-      .repeatEffect(zio.random.nextIntBetween(0, Int.MaxValue))
+      .repeatZIO(zio.Random.nextIntBetween(0, Int.MaxValue))
       .schedule(Schedule.fixed(2.seconds))
-      .mapM { random =>
+      .mapZIO { random =>
         Producer.produce[Any, Long, String](
           topic = "random",
           key = random.toLong % 4,
@@ -34,32 +27,27 @@ object ZIOKafkaProducerConsumerExample extends zio.App {
     Consumer
       .subscribeAnd(Subscription.topics("random"))
       .plainStream(Serde.string, Serde.string)
-      .tap(r => putStrLn(s"Consume: ${r.value}"))
+      .tap(r => Console.printLine(s"Consume: ${r.value}"))
       .map(_.offset)
       .aggregateAsync(Consumer.offsetBatches)
-      .mapM(_.commit)
-      .drain
+      .mapZIO(_.commit)
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    /*producer
-      .merge(consumer)*/
-    consumer.runDrain
-      .provideCustomLayer(appLayer)
-      .exitCode
+  override def run = {
+    producer
+      .merge(consumer)
+      .provideLayer(appLayer)
+      .runDrain
+  }
 
   def producerLayer =
-    ZLayer.fromManaged(
-      Producer.make(
-        settings = ProducerSettings(List("localhost:29092"))
-      )
+    ZLayer.scoped(Producer.make(ProducerSettings(List("localhost:29092"))))
+
+  def consumerLayer =
+    ZLayer.scoped(
+      Consumer
+        .make(ConsumerSettings(List("localhost:29092")).withGroupId("group"))
     )
 
-  def consumerLayer: ZLayer[Clock with Blocking, Throwable, Has[Consumer]] =
-    ZLayer.fromManaged(
-      Consumer.make(
-        ConsumerSettings(List("localhost:29092")).withGroupId("group")
-      )
-    )
-
-  def appLayer = producerLayer ++ consumerLayer
+  val appLayer: ZLayer[Any, Throwable, Producer with Consumer] =
+    producerLayer ++ consumerLayer
 }

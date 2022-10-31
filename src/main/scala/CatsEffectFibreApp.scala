@@ -1,7 +1,6 @@
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.applicative._
 import cats.syntax.apply._
-import cats.syntax.flatMap._
 import cats.syntax.parallel._
 
 import scala.concurrent.duration.{FiniteDuration, _}

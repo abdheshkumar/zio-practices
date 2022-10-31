@@ -1,8 +1,7 @@
 package effect
 
-
 object Effect_04 {
-/*
+  /*
 The ZIO library lets you easily solve problems in a variety of areas, including:
 
 Asynchronous Programming — Write asynchronous code as easily as synchronous code, handling all errors and never leaking resources.
@@ -20,5 +19,5 @@ Scheduling — Schedule repeating work, like report generation or email notifica
 Streaming — Handle huge or infinite amounts of data in constant heap space with efficient, lazy, concurrent streams.
 
 Testing - Easily test effectual programs with powerful combinators, built-in property based testing, and seamless mocking capabilities.
- */
+   */
 }

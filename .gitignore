@@ -6,3 +6,4 @@ project/target
 .vscode
 .gradle
 **.db
+.bsp

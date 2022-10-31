@@ -1,11 +1,11 @@
 package persistence
 
 import persistence.dbtransactor.DBTransactor
-import zio.{Has, RIO, Task, ZIO, ZLayer}
+import zio.{RIO, Task, ZIO, ZLayer}
 
 object User {
 
-  type UserService = Has[Service[User]]
+  type UserService = Service[User]
 
   trait Service[A] {
     def create(user: A): Task[A]
@@ -14,13 +14,13 @@ object User {
   }
 
   def create(user: User): RIO[UserService, User] =
-    RIO.accessM(_.get.create(user))
+    ZIO.serviceWithZIO(_.create(user))
   def find(id: Int): RIO[UserService, Option[User]] =
-    RIO.accessM(_.get.find(id))
+    ZIO.serviceWithZIO(_.find(id))
   def delete(id: Int): RIO[UserService, Boolean] =
-    RIO.accessM(_.get.delete(id))
+    ZIO.serviceWithZIO(_.delete(id))
 
-  val live: ZLayer[DBTransactor, Nothing, UserService] = ZLayer.fromEffect(
+  val live: ZLayer[DBTransactor, Nothing, UserService] = ZLayer(
     DBTransactor.transactor.map(new UserPersistenceService(_))
   )
 }

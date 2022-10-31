@@ -10,20 +10,20 @@ import zio._
 import zio.test._
 import Assertion._
 
-object SimpleHttp4sSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
+object SimpleHttp4sSpec extends ZIOSpecDefault {
+  override def spec =
     suite("routes suite")(
-      testM("root request returns Ok") {
+      test("root request returns Ok") {
         val io: Task[Response[Task]] = simplehttp4s.SimpleHttp4s.helloService
           .run(Request[Task](Method.GET, uri"/"))
         io.map(s => assert(s.status)(equalTo(Status.Ok)))
       },
-      testM("unmapped request returns not found") {
+      test("unmapped request returns not found") {
         val io: Task[Response[Task]] = simplehttp4s.SimpleHttp4s.helloService
           .run(Request[Task](Method.GET, uri"/a"))
         io.map(s => assert(s.status)(equalTo(Status.NotFound)))
       },
-      testM("root request body returns hello!") {
+      test("root request body returns hello!") {
         (for {
           request <- simplehttp4s.SimpleHttp4s.helloService.run(
             Request[Task](Method.GET, uri"/")

@@ -1,61 +1,55 @@
 package ziostream
-import java.nio.file.Paths
-
-import zio.random.Random
-import zio.{ExitCode, IO, UIO, URIO, ZIO, random}
-import zio.stream.{ZStream, ZTransducer}
-import zio.console._
-//https://medium.com/@brianxiang/write-a-simple-message-processing-pipeline-using-zio-streams-cb72a3289913
-object ZIOStreamApp extends zio.App {
+import zio.stream.{ZPipeline, ZStream}
+import zio.{Console, IO, Scope, UIO, ZIO, ZIOAppArgs}
+object ZIOStreamApp extends zio.ZIOAppDefault {
 
   val oneValue: UIO[Int] = ZIO.succeed(1)
   val oneFailure: IO[RuntimeException, Nothing] = ZIO.fail(new RuntimeException)
-  val requiresRandom: URIO[Random, Int] = random.nextInt
   val values: ZStream[Any, Nothing, Int] = ZStream(1, 2, 3)
   val empty: ZStream[Any, Nothing, Nothing] = ZStream.empty
   val valueThanFailure: ZStream[Any, RuntimeException, Int] =
     ZStream(1, 2) ++ ZStream.fail(new RuntimeException)
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+  override def run =
     (for {
       elems <- ZStream("Hello", "World").runCollect
-      _ <- putStrLn(elems.mkString(" "))
+      _ <- Console.printLine(elems.mkString(" "))
     } yield ()).exitCode
 }
 
-object InfiniteStream extends zio.App {
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+object InfiniteStream extends zio.ZIOAppDefault {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] =
     ZStream
       .iterate(0)(_ + 1)
       .take(20)
       .runCollect
       .flatMap { chunk =>
-        putStrLn(chunk.toString())
+        Console.printLine(chunk.toString())
       }
       .exitCode
 }
 
-object Effects extends zio.App {
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    (ZStream.fromEffect(putStrLn("Hello")).drain ++
+object Effects extends zio.ZIOAppDefault {
+  override def run =
+    (ZStream.fromZIO(Console.printLine("Hello")).drain ++
       ZStream.iterate(0)(_ + 1))
-      .tap(i => putStrLn((i + 2).toString))
+      .tap(i => Console.printLine((i + 2).toString))
       .take(20)
       .runCollect
       .exitCode
 }
 
-object ControlFlow extends zio.App {
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+object ControlFlow extends zio.ZIOAppDefault {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] =
     ZStream
-      .repeatEffect(getStrLn)
+      .repeatZIO(Console.readLine)
       .take(4)
-      .tap(line => putStrLn(line) *> putStrLn(line))
+      .tap(line => Console.printLine(line) *> Console.printLine(line))
       .runCollect
       .exitCode
 }
 
-object Transforming extends zio.App {
+object Transforming extends zio.ZIOAppDefault {
   case class StockQuote(symbol: String, openPrice: Double, closePrice: Double)
   val streamStocks =
     ZStream(StockQuote("DOOG", 37.84, 39.00), StockQuote("NET", 18.48, 19.01))
@@ -69,29 +63,19 @@ object Transforming extends zio.App {
         )
     }
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+  override def run =
     streamOpenAndClose.runCollect.exitCode
 }
 
-object TransDocing extends zio.App {
-  val stockQuotePath = ""
+object TransDocing extends zio.ZIOAppDefault {
+  val stockQuotePath = "file.txt"
   val stream = ZStream
-    .fromFile(Paths.get(stockQuotePath))
-    .transduce(ZTransducer.utf8Decode >>> ZTransducer.splitLines)
+    .fromFileName(stockQuotePath)
+    .via(ZPipeline.utf8Decode >>> ZPipeline.splitLines)
     .take(10)
-    .tap(putStrLn(_))
+    .tap(Console.printLine(_))
     .runDrain
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    stream.exitCode
+  override def run = stream.exitCode
 
-}
-
-object StockQuoteMonitor extends zio.App{
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-  ???
-}
-
-object MergeToS3 extends zio.App{
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = ???
 }

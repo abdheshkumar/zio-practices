@@ -2,25 +2,24 @@ package effect
 
 import cats.Monad
 import effect.Cats_Effect_03.Testing.TestIO
+import zio.ZIO
 
 //https://guillaumebogard.dev/posts/functional-error-handling/
 //https://github.com/gbogard/cats-mtl-talk
 //https://github.com/svroonland/rezilience
-object Effect_03 extends zio.App {
-  import zio.console.Console
-  import zio.{console, _}
+object Effect_03 extends zio.ZIOAppDefault {
+  import zio.Console
 
   import java.io.IOException
 
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    Program.getUserInput("Please enter your name").exitCode
+  def run = Program.getUserInput("Please enter your name").exitCode
 
   object Program {
-    def getUserInput(message: String): ZIO[Console, IOException, String] = {
+    def getUserInput(message: String): ZIO[Any, IOException, String] = {
       for {
-        _ <- console.putStrLn(message)
-        input <- console.getStrLn
-        _ <- console.putStrLn(s"Your have entered: $input")
+        _ <- Console.printLine(message)
+        input <- Console.readLine
+        _ <- Console.printLine(s"Your have entered: $input")
       } yield input
     }
   }

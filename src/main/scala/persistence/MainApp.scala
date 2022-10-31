@@ -1,53 +1,32 @@
 package persistence
 
 import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.middleware.CORS
 import persistence.api.Api
-import persistence.config.Config
+import persistence.config.AppConfig
 import persistence.dbtransactor.DBTransactor
-import persistence.logging.Logger
-import zio._
-import zio.blocking.Blocking
-import zio.clock.Clock
-import zio.logging.Logging
+import zio.{Console, _}
 import zio.interop.catz._
-import org.http4s.implicits._
-import persistence.User.UserService
 
-object MainApp extends zio.App {
-  type AppEnvironment = Config
-    with Clock
-    with Blocking
-    with User.UserService
-    with Logging
+object MainApp extends zio.ZIOAppDefault {
+  type AppEnvironment = AppConfig & User.UserService
 
   type AppTask[A] = RIO[AppEnvironment, A]
 
-  val logger: ULayer[Logging] = Logger.live
-  val configLayer: ZLayer[Any, Throwable, Config] = logger >>> Config.live
-  val transactor: ZLayer[Blocking, Throwable, DBTransactor] =
-    logger ++ Blocking.any ++ configLayer >>> DBTransactor.live
-  val userPersistence: ZLayer[Blocking, Throwable, UserService] =
-    transactor >>> User.live
-  val appLayers: ZLayer[
-    Any with Blocking,
-    Throwable,
-    Logging with Config with UserService
-  ] = logger ++ configLayer ++ userPersistence
-
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] = {
-    val program: ZIO[AppEnvironment, Throwable, Unit] =
+  override def run = {
+    val program: ZIO[AppEnvironment with AppConfig, Throwable, Unit] =
       for {
-        api <- Config.httpServerConfig
+        api <- ZIO.service[AppConfig]
         httpApp = Router[AppTask](
-          "/users" -> Api(s"${api.path}/users").route
+          "/users" -> Api(s"${api.httpServer.path}/users").route
         ).orNotFound
-        blockingEC <- blocking.blocking(ZIO.descriptor.map(_.executor.asEC))
+        blockingEC <- ZIO.executor
         server <- ZIO.runtime[AppEnvironment].flatMap { _ =>
           BlazeServerBuilder[AppTask]
-            .withExecutionContext(blockingEC)
-            .bindHttp(api.port.value, api.host.value)
+            .withExecutionContext(blockingEC.asExecutionContext)
+            .bindHttp(api.httpServer.port.value, api.httpServer.host.value)
             .withHttpApp(CORS.policy.withAllowOriginAll(httpApp))
             .serve
             .compile
@@ -56,8 +35,8 @@ object MainApp extends zio.App {
       } yield server
 
     program
-      .provideCustomLayer(appLayers)
-      .tapError(err => zio.console.putStrLn(s"Execution failed with: $err"))
+      .provide(Config.live, DBTransactor.live, User.live)
+      .tapError(err => Console.printLine(s"Execution failed with: $err"))
       .exitCode
   }
 }

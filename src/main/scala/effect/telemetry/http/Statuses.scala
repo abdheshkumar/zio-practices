@@ -1,6 +1,6 @@
 package effect.telemetry.http
 
-import zio.json.{ DeriveJsonCodec, JsonCodec }
+import zio.json.{DeriveJsonCodec, JsonCodec}
 
 final case class Statuses(data: List[Status]) extends AnyVal
 

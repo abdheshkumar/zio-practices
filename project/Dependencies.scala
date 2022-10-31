@@ -11,12 +11,13 @@ object Dependencies {
   }
 
   object ZIO {
-    def zioM(artifact: String): ModuleID = "dev.zio" %% artifact % "1.0.13"
+    def zioM(artifact: String): ModuleID = "dev.zio" %% artifact % "2.0.2"
     val zio = zioM("zio")
     val zioStreams = zioM("zio-streams")
     val zioMacros = zioM("zio-macros")
     val zioTest = zioM("zio-test") % Test
     val zioTestSbt = zioM("zio-test-sbt") % Test
+    val zioTestMagnolia=  zioM("zio-test-magnolia" )% Test
 
     val config = Seq(
       "dev.zio" %% "zio-config" % "3.0.2",
@@ -29,20 +30,16 @@ object Dependencies {
       "dev.zio" %% "zio-interop-cats" % "3.3.0"
     val zioLogging = "dev.zio" %% "zio-logging" % "2.1.2"
     val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % "2.1.2"
-    val zioMagic = "io.github.kitlangton" %% "zio-magic" % "0.3.12"
 
     object Versions {
       val jaeger = "1.8.0"
-      val sttp3 = "3.3.17"
-      val opentelemetry = "1.10.0"
+      val opentelemetry = "1.19.0"
       val zipkin = "2.16.3"
-      val zioHttp = "1.0.0.0-RC17"
-      val zioJson = "0.1.5"
+      val zioHttp = "2.0.0-RC11"
+      val zioJson = "0.3.0"
       val zioConfig = "2.0.0"
     }
     val opentelemetry = Seq(
-      "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % Versions.sttp3,
-      "com.softwaremill.sttp.client3" %% "zio-json" % Versions.sttp3,
       "io.d11" %% "zhttp" % Versions.zioHttp,
       "dev.zio" %% "zio-json" % Versions.zioJson,
       "io.opentelemetry" % "opentelemetry-exporter-jaeger" % Versions.opentelemetry,
@@ -56,8 +53,8 @@ object Dependencies {
       zioLogging,
       zioTest,
       zioTestSbt,
+      zioTestMagnolia,
       loggingSlf4j,
-      zioMagic,
       kafka
     ) ++ config ++ opentelemetry
   }
@@ -90,13 +87,13 @@ object Dependencies {
 
   object Doobie {
     def doobie(artifact: String): ModuleID =
-      "org.tpolecat" %% artifact % "1.0.0-RC1"
+      "org.tpolecat" %% artifact % "1.0.0-RC2"
 
     val core = doobie("doobie-core")
     val hikari = doobie("doobie-hikari")
     val postgres = doobie("doobie-postgres")
     val refined = doobie("doobie-refined")
-    val quill = doobie("doobie-quill")
+    val quill = "io.getquill" %% "quill-doobie" % "4.6.0"
     val doobieH2 = doobie("doobie-h2")
     val quillJdbc = "io.getquill" %% "quill-jdbc" % "4.6.0"
     val h2 = "com.h2database" % "h2" % "2.1.214"

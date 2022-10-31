@@ -26,13 +26,13 @@ final case class Api[R <: User.UserService](rootUri: String) {
   def route: HttpRoutes[UserTask] = {
     HttpRoutes.of[UserTask] {
       case GET -> Root / IntVar(id) =>
-        User.find(id).foldM(_ => NotFound(), Ok(_))
+        User.find(id).foldZIO(_ => NotFound(), Ok(_))
       case request @ POST -> Root =>
         request.decode[User] { user =>
           Created(User.create(user))
         }
       case DELETE -> Root / IntVar(id) =>
-        (User.find(id) *> User.delete(id)).foldM(_ => NotFound(), Ok(_))
+        (User.find(id) *> User.delete(id)).foldZIO(_ => NotFound(), Ok(_))
     }
   }
 

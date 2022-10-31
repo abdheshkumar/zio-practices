@@ -1,43 +1,24 @@
 package com.abtechsoft
 
-import zio.console._
-import zio.internal.Platform
-import zio.{BootstrapRuntime, ExitCode, Runtime, Task, URIO, ZEnv, ZIO}
-import zio.console._
+import zio.Console._
+import zio.{Runtime, Unsafe, ZIO}
 
 import java.io.IOException
 
 object MainWithoutZIOApp {
-  val program: ZIO[Console, IOException, Unit] = putStrLn("Hello, world")
+  val program: ZIO[Any, IOException, Unit] = printLine("Hello, world")
 
-  def main(args: Array[String]): Unit = {
-    Runtime.default.unsafeRun(program)
-  }
+  def main(args: Array[String]): Unit =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.run(program)
+    }
 }
 
-object MainWithZIOApp extends zio.App {
+object MainWithZIOApp extends zio.ZIOAppDefault {
 
-  val program: ZIO[Console, IOException, Unit] = putStrLn("Hello, world")
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] = {
+  val program: ZIO[Any, IOException, Unit] = printLine("Hello, world")
+  override def run = {
     program.exitCode
-  }
-}
-
-object FatalErrorMain extends zio.App {
-  override val platform: Platform = Platform.default.withFatal(_ => true)
-
-  def simpleName[A](c: Class[A]) = c.getSimpleName
-
-  override def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    Task(simpleName(FatalErrorMain.getClass))
-      .fold(_ => ExitCode.failure, _ => ExitCode.success)
-}
-
-object Main02 {
-  val program: ZIO[Console, IOException, Unit] = putStrLn("Hello, world")
-  val runtime = new BootstrapRuntime {}
-  def main(args: Array[String]): Unit = {
-    runtime.unsafeRun(program)
   }
 }
 

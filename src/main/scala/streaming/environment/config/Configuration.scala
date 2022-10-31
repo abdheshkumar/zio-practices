@@ -6,14 +6,18 @@ import zio._
 
 object Configuration {
 
-  final case class DbConfig(driver: String, url: String, user: String, password: String)
+  final case class DbConfig(
+      driver: String,
+      url: String,
+      user: String,
+      password: String
+  )
   final case class HttpServerConfig(host: String, port: Int, path: String)
   final case class AppConfig(dbConfig: DbConfig, httpServer: HttpServerConfig)
 
-  val live: ULayer[Configuration] = ZLayer.fromEffectMany(
+  val live: ULayer[AppConfig] = ZLayer(
     ZIO
-      .effect(ConfigSource.default.loadOrThrow[AppConfig])
-      .map(c => Has(c.dbConfig) ++ Has(c.httpServer))
+      .attempt(ConfigSource.default.loadOrThrow[AppConfig])
       .orDie
   )
 }

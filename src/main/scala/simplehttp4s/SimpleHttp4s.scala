@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext.Implicits
 import org.http4s.blaze.server.BlazeServerBuilder
 object ioz extends Http4sDsl[Task]
 
-object SimpleHttp4s extends App {
+object SimpleHttp4s extends zio.ZIOAppDefault {
   import ioz._
 
   val helloService: Kleisli[Task, Request[Task], Response[Task]] = HttpRoutes
@@ -20,11 +20,10 @@ object SimpleHttp4s extends App {
     }
     .orNotFound
 
-  def run(args: List[String]): URIO[ZEnv, ExitCode] =
-    server.exitCode
+  def run = server
 
-  val server: ZIO[ZEnv, Throwable, Unit] = ZIO
-    .runtime[ZEnv]
+  val server = ZIO
+    .runtime[Any]
     .flatMap { implicit rts =>
       BlazeServerBuilder[Task]
         .withExecutionContext(Implicits.global)

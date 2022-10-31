@@ -1,35 +1,33 @@
 package com.abtechsoft
-import zio.{ExitCode, URIO, ZIO}
-import zio.console
-import zio.console.Console
+import zio.{Console, Scope, ZIO, ZIOAppArgs}
 
 import java.io.IOException
-object ZIOHelpers extends zio.App {
+object ZIOHelpers extends zio.ZIOAppDefault {
 
-  val sumAll: ZIO[Console, IOException, Unit] = ZIO
+  val sumAll: ZIO[Any, IOException, Unit] = ZIO
     .reduceAll(
       ZIO.succeed(0),
       List(1, 2, 3, 4).map(i =>
-        console.putStrLn(s"reduceAll: Current value: ${i}") *> ZIO.succeed(i)
+        Console.printLine(s"reduceAll: Current value: ${i}") *> ZIO.succeed(i)
       )
     )(_ + _)
-    .flatMap(v => console.putStrLn(s"reduceAll : $v"))
+    .flatMap(v => Console.printLine(s"reduceAll : $v"))
 
-  val parSumAll: ZIO[Console, IOException, Unit] = ZIO
+  val parSumAll: ZIO[Any, IOException, Unit] = ZIO
     .reduceAllPar(
       ZIO.succeed(0),
       List(1, 2, 3, 4)
         .map(i =>
-          console.putStrLn(s"reduceAllPar: Current value: ${i}") *> ZIO
+          Console.printLine(s"reduceAllPar: Current value: $i") *> ZIO
             .succeed(i)
         )
     )(_ + _)
-    .flatMap(v => console.putStrLn(s"reduceAllPar : $v"))
+    .flatMap(v => Console.printLine(s"reduceAllPar : $v"))
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     (for {
       _ <- sumAll
       _ <- parSumAll
-    } yield ()).exitCode
+    } yield ())
   }
 }

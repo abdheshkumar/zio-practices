@@ -1,8 +1,6 @@
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, Paths}
-
-import scala.io.Source
+import java.nio.file.{Files, Paths}
 
 object FBFriendAssignment extends App {
   type Positions = List[Int]
@@ -18,8 +16,16 @@ object FBFriendAssignment extends App {
     def toJson = {
       //Scala String Interpolator
       val positionsJson =
-        positionsWithInDoc.map(value => "{" + "\"" + value._1 +"\"" + ":" + value._2.mkString("[", ",", "]")+ "}").mkString(",")
-      s"{" +"\""+word+"\"" + ":" + List(numberOfDocs, positionsJson).mkString("[", ",", "]")+"}"
+        positionsWithInDoc
+          .map(value =>
+            "{" + "\"" + value._1 + "\"" + ":" + value._2
+              .mkString("[", ",", "]") + "}"
+          )
+          .mkString(",")
+      s"{" + "\"" + word + "\"" + ":" + List(
+        numberOfDocs.toString,
+        positionsJson
+      ).mkString("[", ",", "]") + "}"
     }
 
   }
@@ -56,12 +62,10 @@ object FBFriendAssignment extends App {
       )
       val keys = fileContent
         .split("[\n]")
-        .flatMap(line =>
-          line.split("[ ]").filterNot(_.length <= 3)
-        )
+        .flatMap(line => line.split("[ ]").filterNot(_.length <= 3))
         .groupBy(identity)
         .keys
-println(keys.toList)
+      println(keys.toList)
       keys.foldLeft(acc) { //keys unique words in the currently processing file
         case (acc, word) =>
           val positions = findPositions(word, fileContent)

@@ -1,11 +1,11 @@
 package com.abtechsoft.persistence
 
 import persistence.{User, UserNotFound}
-import zio.{Ref, Task, ZLayer}
+import zio.{Ref, Task, ZIO, ZLayer}
 
 case class Test(users: Ref[Vector[User]]) extends User.Service[User] {
   def find(id: Int): Task[Option[User]] =
-    users.get.flatMap(users => Task.succeed(users.find(_.id == id)))
+    users.get.flatMap(users => ZIO.succeed(users.find(_.id == id)))
   def create(user: User): Task[User] =
     users.update(_ :+ user).map(_ => user)
   def delete(id: Int): Task[Boolean] =
@@ -14,5 +14,5 @@ case class Test(users: Ref[Vector[User]]) extends User.Service[User] {
 
 object Test {
   val layer: ZLayer[Any, Nothing, User.UserService] =
-    ZLayer.fromEffect(Ref.make(Vector.empty[User]).map(Test(_)))
+    ZLayer(Ref.make(Vector.empty[User]).map(Test(_)))
 }

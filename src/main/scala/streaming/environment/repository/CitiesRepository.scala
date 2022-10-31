@@ -12,7 +12,5 @@ object CitiesRepository {
   }
 
   val live: URLayer[DbTransactor, CitiesRepository] =
-    ZLayer.fromService { resource =>
-      Database(resource.xa)
-    }
+    ZLayer { ZIO.service[DbTransactor].map(resource => Database(resource.xa)) }
 }

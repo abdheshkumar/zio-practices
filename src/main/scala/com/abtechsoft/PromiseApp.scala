@@ -1,11 +1,9 @@
 package com.abtechsoft
 import zio._
-import zio.clock.Clock
-import zio.console.Console
-import zio.duration.durationInt
 
 import java.io.IOException
-object PromiseApp extends App {
+object PromiseApp extends zio.ZIOAppDefault {
+
   val race: IO[String, Int] = for {
     p <- Promise.make[String, Int]
     _ <- p.succeed(13).fork
@@ -13,35 +11,34 @@ object PromiseApp extends App {
     _ <- p.completeWith(ZIO.succeed(3)).fork
     _ <- p.done(Exit.succeed(4)).fork
     _ <- p.fail("5")
-    _ <- p.halt(Cause.die(new Error("6")))
+    _ <- p.failCause(Cause.die(new Error("6")))
     _ <- p.die(new Error("7"))
     _ <- p.interrupt.fork
     value <- p.await
   } yield value
 
-  val promiseDelay
-      : ZIO[Any with Clock with Has[Console.Service], IOException, Int] = for {
+  val promiseDelay: ZIO[Any, IOException, Int] = for {
     promise <- Promise.make[IOException, Int]
-    c <- ZIO.service[zio.console.Console.Service]
+    c <- ZIO.console
     _ <-
       promise
         .completeWith({
-          c.putStrLn("Running promise") *> IO.succeed(12)
+          c.printLine("Running promise") *> ZIO.succeed(12)
         })
         .delay(1.second)
         .fork
-    _ <- c.putStrLn("It should run before promise logic..")
+    _ <- c.printLine("It should run before promise logic..")
     value <- promise.await // Resumes when forked fiber completes promise
-    _ <- c.putStrLn("Wait for final result")
+    _ <- c.printLine("Wait for final result")
   } yield value
 
   val ioPromise2: UIO[Promise[Exception, Nothing]] =
     Promise.make[Exception, Nothing]
+
   val ioBooleanFailed: UIO[Boolean] =
     ioPromise2.flatMap(promise => promise.fail(new Exception("boom")))
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
-    //ioBooleanFailed.map(println).exitCode
-    promiseDelay.exitCode
-  }
+  override def run: ZIO[Environment with ZIOAppArgs with Scope, Any, Any] =
+    promiseDelay
+
 }

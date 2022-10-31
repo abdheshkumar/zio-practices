@@ -2,13 +2,14 @@ package streaming.environment.repository
 
 import streaming.domain.City
 import doobie.implicits._
-import doobie.quill.DoobieContext
 import doobie.util.transactor.Transactor
 import io.getquill._
+import io.getquill.doobie.DoobieContext
 import zio.Task
 import zio.interop.catz._
 
-private[repository] final case class Database(xa: Transactor[Task]) extends CitiesRepository.Service {
+private[repository] final case class Database(xa: Transactor[Task])
+    extends CitiesRepository.Service {
   val ctx = new DoobieContext.H2(Literal)
   import ctx._
 
@@ -24,12 +25,14 @@ private[repository] final case class Database(xa: Transactor[Task]) extends Citi
   private object Queries {
     val all = quote(query[City])
 
-    def byId(id: Int) = quote {
-      all.filter(_.id == lift(id))
-    }
+    def byId(id: Int) =
+      quote {
+        all.filter(_.id == lift(id))
+      }
 
-    def byCountry(country: String) = quote {
-      all.filter(_.countryCode == lift(country))
-    }
+    def byCountry(country: String) =
+      quote {
+        all.filter(_.countryCode == lift(country))
+      }
   }
 }

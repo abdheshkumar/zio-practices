@@ -12,10 +12,11 @@ object FiberApp extends IOApp {
     _ <- io(2)
   } yield ExitCode.Success
 
-  def io2(i: Int): IO[Unit] = IO({
-    Thread.sleep(3000)
-    println(s"Hi from $i!")
-  })
+  def io2(i: Int): IO[Unit] =
+    IO({
+      Thread.sleep(3000)
+      println(s"Hi from $i!")
+    })
 
   val program2 = for {
     fiber <- io2(1).start

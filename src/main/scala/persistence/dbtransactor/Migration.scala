@@ -3,24 +3,24 @@ package persistence.dbtransactor
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.Location
 import org.flywaydb.core.api.configuration.ClassicConfiguration
-import persistence.config.{Config, DBConfig}
+import persistence.config.AppConfig
 import zio._
-import zio.logging.{Logging, log}
 
 object Migration {
 
   private val cpLocation = new Location("classpath:db/migration")
   private val fsLocation = new Location("filesystem:db/migration")
 
-  val migrate: RIO[Has[DBConfig] with Logging, Unit] =
-    Config.dbConfig
+  val migrate: ZIO[AppConfig, Throwable, Unit] =
+    ZIO
+      .service[AppConfig]
       .flatMap { cfg =>
-        ZIO.effect {
+        ZIO.attempt {
           val config = new ClassicConfiguration()
           config.setDataSource(
-            cfg.url.value,
-            cfg.user,
-            cfg.password
+            cfg.dbConfig.url.value,
+            cfg.dbConfig.user,
+            cfg.dbConfig.password
           )
           config.setLocations(cpLocation, fsLocation)
           val newFlyway = new Flyway(config)
@@ -28,6 +28,6 @@ object Migration {
           newFlyway.migrate()
         }.unit
       }
-      .tapError(err => log.error(s"Error migrating database: $err."))
+      .tapError(err => ZIO.logError(s"Error migrating database: $err."))
 
 }

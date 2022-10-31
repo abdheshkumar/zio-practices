@@ -19,21 +19,20 @@ final class CitiesEndpoint[R <: CitiesRepository] {
   val dsl = Http4sDsl[CitiesTask]
   import dsl._
 
-  object CountryParameter extends
-    QueryParamDecoderMatcher[String]("country")
+  object CountryParameter extends QueryParamDecoderMatcher[String]("country")
 
-private val httpRoutes = HttpRoutes.of[CitiesTask] {
-  case GET -> Root :? CountryParameter(country) =>
-    val pipeline: CitiesTask[CitiesStream] = citiesByCountry(country)
-    pipeline.flatMap(stream => Ok(stream.map(_.asJson)))
+  private val httpRoutes = HttpRoutes.of[CitiesTask] {
+    case GET -> Root :? CountryParameter(country) =>
+      val pipeline: CitiesTask[CitiesStream] = citiesByCountry(country)
+      pipeline.flatMap(stream => Ok(stream.map(_.asJson)))
 
-  case GET -> Root =>
-    val pipeline: CitiesTask[CitiesStream] = allCities
-    for {
-      stream <- pipeline
-      json <- Ok(stream.map(_.asJson))
-    } yield json
-}
+    case GET -> Root =>
+      val pipeline: CitiesTask[CitiesStream] = allCities
+      for {
+        stream <- pipeline
+        json <- Ok(stream.map(_.asJson))
+      } yield json
+  }
 
   val routes: HttpRoutes[CitiesTask] = Router(
     prefixPath -> httpRoutes

@@ -1,7 +1,7 @@
 package effect
 import zio._
 
-object Effect_07_Fibers extends zio.App {
+object Effect_07_Fibers extends zio.ZIOAppDefault {
 
   def printThread = s"[${Thread.currentThread().getName}]"
 
@@ -16,8 +16,7 @@ object Effect_07_Fibers extends zio.App {
       _ <- preparingCoffee.debug(printThread)
     } yield ()
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    concurrentWakeUpRoutine().exitCode
+  override def run = concurrentWakeUpRoutine()
 
   /*
 A fiber is a schedulable computation, much like a thread. However, it’s only a data structure,
