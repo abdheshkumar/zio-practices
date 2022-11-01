@@ -4,7 +4,7 @@ object Dependencies {
 
   object TestContainer {
     val postgresqlContainer =
-      "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.39.12" % Test
+      "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.11" % Test
     val all = Seq(postgresqlContainer)
   }
 
