@@ -64,10 +64,11 @@ object Dependencies {
 
   object Http4s {
     private val http4sVersion = "0.23.16"
-    "org.http4s" %% "http4s-dsl" % http4sVersion
-    val http4sServer = "org.http4s" %% "http4s-blaze-server" % http4sVersion
+    private val http4sBlazeVersion = "0.23.12"
+    
+    val http4sServer = "org.http4s" %% "http4s-blaze-server" % http4sBlazeVersion
+    val http4sClient = "org.http4s" %% "http4s-blaze-client" % http4sBlazeVersion
     val http4sDsl = "org.http4s" %% "http4s-dsl" % http4sVersion
-    val http4sClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
     val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
     val all = Seq(http4sServer, http4sDsl, http4sClient, http4sCirce)
   }
