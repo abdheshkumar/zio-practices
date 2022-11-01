@@ -7,9 +7,9 @@ import org.http4s.server.middleware.CORS
 import persistence.api.Api
 import persistence.config.AppConfig
 import persistence.dbtransactor.DBTransactor
-import zio.{Console, _}
 import zio.interop.catz._
-
+import persistence.config.Config
+import zio.{&, RIO, ZIO, Console}
 object MainApp extends zio.ZIOAppDefault {
   type AppEnvironment = AppConfig & User.UserService
 

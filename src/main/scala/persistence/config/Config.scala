@@ -1,10 +1,9 @@
-package persistence
+package persistence.config
 
-import persistence.config.AppConfig
 import pureconfig.ConfigSource
-import pureconfig.generic.auto._
 import eu.timepit.refined.pureconfig._ // Do not remove
-import zio.{Task, _}
+import pureconfig.generic.auto._
+import zio.{System, Task, ZIO, ZLayer}
 
 object Config {
 
