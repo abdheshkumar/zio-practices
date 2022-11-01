@@ -26,7 +26,7 @@ object Dependencies {
     val kafka = "dev.zio" %% "zio-kafka" % "2.0.1"
     val zioInteropCats =
       "dev.zio" %% "zio-interop-cats" % "3.3.0"
-    private val zioLoggingVersion = "2.1.2"
+    private val zioLoggingVersion = "2.1.3"
     val zioLogging = "dev.zio" %% "zio-logging" % zioLoggingVersion
     val loggingSlf4j = "dev.zio" %% "zio-logging-slf4j" % zioLoggingVersion
 
@@ -89,7 +89,7 @@ object Dependencies {
     val quill = "io.getquill" %% "quill-doobie" % "4.6.0"
     val doobieH2 = "org.tpolecat" %% "doobie-h2" % doobieVersion
     val quillJdbc = "io.getquill" %% "quill-jdbc" % "4.6.0"
-    val h2 = "com.h2database" % "h2" % "2.1.214"
+    val h2 = "com.h2database" % "h2" % "2.1.314"
     val all: Seq[ModuleID] =
       Seq(core, hikari, refined, postgres, quill, h2, quillJdbc, doobieH2)
   }
