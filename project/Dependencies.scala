@@ -9,7 +9,7 @@ object Dependencies {
   }
 
   object ZIO {
-    private val zioVersion = "2.0.3"
+    private val zioVersion = "2.0.4"
     val zio = "dev.zio" %% "zio" % zioVersion
     val zioStreams = "dev.zio" %% "zio-streams" % zioVersion
     val zioTest = "dev.zio" %% "zio-test" % zioVersion % Test
@@ -42,7 +42,7 @@ object Dependencies {
       "io.d11" %% "zhttp" % Versions.zioHttp,
       "dev.zio" %% "zio-json" % Versions.zioJson,
       "io.opentelemetry" % "opentelemetry-exporter-jaeger" % Versions.opentelemetry,
-      "dev.zio" %% "zio-opentelemetry" % "2.0.3"
+      "dev.zio" %% "zio-opentelemetry" % "2.0.4"
     )
     val all = Seq(
       zio,
