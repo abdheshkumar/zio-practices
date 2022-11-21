@@ -37,12 +37,13 @@ object Dependencies {
       val zioHttp = "2.0.0-RC11"
       val zioJson = "0.3.0"
       val zioConfig = "2.0.0"
+      val zioOpentelemetry = "2.0.3"
     }
     val opentelemetry = Seq(
       "io.d11" %% "zhttp" % Versions.zioHttp,
       "dev.zio" %% "zio-json" % Versions.zioJson,
       "io.opentelemetry" % "opentelemetry-exporter-jaeger" % Versions.opentelemetry,
-      "dev.zio" %% "zio-opentelemetry" % "2.0.4"
+      "dev.zio" %% "zio-opentelemetry" % Versions.zioOpentelemetry
     )
     val all = Seq(
       zio,
