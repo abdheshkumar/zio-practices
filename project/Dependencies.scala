@@ -16,7 +16,7 @@ object Dependencies {
     val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion % Test
     val zioTestMagnolia = "dev.zio" %% "zio-test-magnolia" % zioVersion % Test
 
-    private val zioConfigVersion = "3.0.6"
+    private val zioConfigVersion = "3.0.7"
     val config = Seq(
       "dev.zio" %% "zio-config" % zioConfigVersion,
       "dev.zio" %% "zio-config-magnolia" % zioConfigVersion,
