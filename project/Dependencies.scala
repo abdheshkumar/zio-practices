@@ -9,7 +9,7 @@ object Dependencies {
   }
 
   object ZIO {
-    private val zioVersion = "2.0.6"
+    private val zioVersion = "2.0.7"
     val zio = "dev.zio" %% "zio" % zioVersion
     val zioStreams = "dev.zio" %% "zio-streams" % zioVersion
     val zioTest = "dev.zio" %% "zio-test" % zioVersion % Test
