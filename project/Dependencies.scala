@@ -23,7 +23,7 @@ object Dependencies {
       "dev.zio" %% "zio-config-typesafe" % zioConfigVersion,
       "dev.zio" %% "zio-config-refined" % zioConfigVersion
     )
-    val kafka = "dev.zio" %% "zio-kafka" % "2.0.6"
+    val kafka = "dev.zio" %% "zio-kafka" % "2.0.7"
     val zioInteropCats =
       "dev.zio" %% "zio-interop-cats" % "3.3.0"
     private val zioLoggingVersion = "2.1.8"
