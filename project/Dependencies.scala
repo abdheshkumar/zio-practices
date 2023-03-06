@@ -58,7 +58,7 @@ object Dependencies {
     ) ++ config ++ opentelemetry
   }
   object FlyWay {
-    val flyWayCore = "org.flywaydb" % "flyway-core" % "9.15.1"
+    val flyWayCore = "org.flywaydb" % "flyway-core" % "9.15.2"
     val driver = "org.postgresql" % "postgresql" % "42.5.4"
     val all = Seq(flyWayCore, driver)
   }
