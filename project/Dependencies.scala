@@ -65,7 +65,7 @@ object Dependencies {
 
   object Http4s {
     private val http4sVersion = "0.23.18"
-    private val http4sBlazeVersion = "0.23.13"
+    private val http4sBlazeVersion = "0.23.14"
     
     val http4sServer = "org.http4s" %% "http4s-blaze-server" % http4sBlazeVersion
     val http4sClient = "org.http4s" %% "http4s-blaze-client" % http4sBlazeVersion
