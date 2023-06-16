@@ -98,7 +98,7 @@ object Dependencies {
 
   object Config {
     val pureConfig = "com.github.pureconfig" %% "pureconfig" % "0.17.4"
-    val pureconfigRefined = "eu.timepit" %% "refined-pureconfig" % "0.10.3"
+    val pureconfigRefined = "eu.timepit" %% "refined-pureconfig" % "0.11.0"
     val all = Seq(pureConfig, pureconfigRefined)
   }
 
