@@ -103,7 +103,7 @@ object Dependencies {
   }
 
   object Logback {
-    val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
+    val logback = "ch.qos.logback" % "logback-classic" % "1.4.13"
     val all = Seq(logback)
   }
 
