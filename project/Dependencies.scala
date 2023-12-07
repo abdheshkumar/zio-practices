@@ -59,7 +59,7 @@ object Dependencies {
   }
   object FlyWay {
     val flyWayCore = "org.flywaydb" % "flyway-core" % "9.22.3"
-    val driver = "org.postgresql" % "postgresql" % "42.7.0"
+    val driver = "org.postgresql" % "postgresql" % "42.7.1"
     val all = Seq(flyWayCore, driver)
   }
 
