@@ -4,7 +4,7 @@ lazy val root = project
   .settings(
     name := "zio-practices",
     version := "0.1",
-    scalaVersion := "2.13.12",
+    scalaVersion := "2.13.13",
     scalacOptions ++= Seq(
       //"-Xfatal-warnings",
       "-Ymacro-annotations"
