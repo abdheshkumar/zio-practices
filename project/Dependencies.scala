@@ -88,7 +88,7 @@ object Dependencies {
     val hikari = "org.tpolecat" %% "doobie-hikari" % doobieVersion
     val postgres = "org.tpolecat" %% "doobie-postgres" % doobieVersion
     val refined = "org.tpolecat" %% "doobie-refined" % doobieVersion
-    val quill = "io.getquill" %% "quill-doobie" % "4.8.0"
+    val quill = "io.getquill" %% "quill-doobie" % "4.8.4"
     val doobieH2 = "org.tpolecat" %% "doobie-h2" % doobieVersion
     val quillJdbc = "io.getquill" %% "quill-jdbc" % "4.8.4"
     val h2 = "com.h2database" % "h2" % "2.3.230"
