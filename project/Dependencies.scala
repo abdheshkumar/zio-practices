@@ -83,7 +83,7 @@ object Dependencies {
   }
 
   object Doobie {
-    private val doobieVersion = "1.0.0-RC2"
+    private val doobieVersion = "1.0.0-RC6"
     val core = "org.tpolecat" %% "doobie-core" % doobieVersion
     val hikari = "org.tpolecat" %% "doobie-hikari" % doobieVersion
     val postgres = "org.tpolecat" %% "doobie-postgres" % doobieVersion
